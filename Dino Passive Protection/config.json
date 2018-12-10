@@ -1,0 +1,25 @@
+{
+  "General": {
+    "RequiresNotFollowing": true,
+    "RequiresPassiveFlee": true,
+    "RequiresIgnoreWhistle": true,
+    "RequiresNeutered": true,
+    "RequiresNoRider": true,
+    "RequiresNoInventory": true,
+    "RequiresNoNearbyEnemyStructures": true,
+
+    "MinimumEnemyStructureDistance": 10,
+    "MinimumHealthPercentage": 100,
+
+    "MessageTextSize": 1.4,
+    "MessageDisplayDelay": 10,
+    "MessageColor": [
+      1.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+
+  "PassiveProtectedDinoTakingDamageMessage":  "This dino is under Passive Protection!"
+}

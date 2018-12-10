@@ -1,5 +1,8 @@
-#include <iostream>
 #include <API/ARK/Ark.h>
+#include "DPP.h"
+#include "DPPConfig.h"
+//#include "NewPlayerProtectionHooks.h"
+//#include "NewPlayerProtectionCommands.h"
 
 #pragma comment(lib, "ArkApi.lib")
 
@@ -8,99 +11,166 @@ DECLARE_HOOK(APrimalDinoCharacter_TakeDamage, float, APrimalDinoCharacter*, floa
 float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Damage, FDamageEvent* DamageEvent,
 	AController* EventInstigator, AActor* DamageCauser)
 {
+	//_this != NULL
 	if (_this)
 	{
+		//Dino is a tribe dino
 		if (_this->TargetingTeamField() > 10000)
 		{
-			FString descr;
-			//_this->GetHumanReadableName(&descr);
-			_this->DinoNameTagField().ToString(&descr);
-			//not displaying??
-			Log::GetLog()->warn("Dino name: {}", descr.ToString());
+			UPrimalCharacterStatusComponent* charStatus = _this->GetCharacterStatusComponent();
 
-			int following = 0;
+			FString DinoName;
+			bool isNotFollowing;
+			bool isPassiveAggressive;
+			bool isPassiveFlee;
+			bool isIgnoringWhistles;
+			bool isNeutered;
+			bool hasNoRider;
+			bool hasNoInventory;
+			bool isNotNearEnemyStructures;
+			bool isHealthAboveMin;
+
+			//get and print Dino Name
+			_this->GetDinoDescriptiveName(&DinoName);
+			int32 Index = 0;
+			if (DinoName.FindLastChar('-', Index))
+			{
+				DinoName = DinoName.RightChop(Index + 2);
+				if (DinoName.FindLastChar('(', Index)) DinoName.RemoveAt(Index);
+				if (DinoName.FindLastChar(')', Index)) DinoName.RemoveAt(Index);
+			}
+
+			//check if dino is following something
 			if (_this->GetTamedFollowTarget())
 			{
-				following = 1;
-				//Log::GetLog()->warn("Dino is following a target!");
+				isNotFollowing = false;
 			}
-			Log::GetLog()->warn("Following a target: ", following);
-
-			int AggressionField = _this->TamedAggressionLevelField();
-			//0 is passive or passive flee
-			Log::GetLog()->warn("Dino AggressionField: {}", AggressionField);
-
-
-			bool passiveflee = _this->bPassiveFlee().Get();
-			// true when on passive flee
-			Log::GetLog()->warn("Dino is passive flee: {}", passiveflee);
-
-			bool ignorewhistle = _this->bIgnoreAllWhistles().Get();
-			//true when set to ignore
-			Log::GetLog()->warn("Dino is ignore whistle: {}", ignorewhistle);
-
-			bool neutered = _this->bNeutered().Get();
-			//true when spayed or neutered
-			Log::GetLog()->warn("Dino is neutered: {}", neutered);
-
-			bool hasrider = _this->bHasRider().Get();
-			Log::GetLog()->warn("Dino has rider: {}", hasrider);
-
-			float dragWeight = _this->DragWeightField();
-			//does not change with inventory
-			Log::GetLog()->warn("Dino dragWeight: {}", dragWeight);
-
-			float basedragWeight = _this->GetBaseDragWeight();
-			Log::GetLog()->warn("Dino basedragWeight: {}", basedragWeight);
-
-
-			float getdragWeight = _this->GetDragWeight(_this);;
-			Log::GetLog()->warn("Dino getdragWeight: {}", getdragWeight);
-
-			APrimalDinoCharacter* default = static_cast<APrimalDinoCharacter*>(_this->ClassField()->GetDefaultObject(true));
-			float modDragWeight = default->DragWeightField();
-			//does not change with inventory
-			Log::GetLog()->warn("Dino Modded dragweight: {}", modDragWeight);
-
-
-			//Log::GetLog()->warn("Dino name: {}", descr.ToString());
-
-
-			//Log::GetLog()->warn("Dino name: {}", descr.ToString());
-
-			//bIsCarryingCharacter()
-			//bIsCarryingPassenger()
-			//bIsInTurretMode()
-			//bMovementInProgress()
-
-			//needs weight (No saddle or inventory)  && full health && not near enemy structures
-			if (AggressionField == 0 && passiveflee && ignorewhistle && !following && neutered && !hasrider)
+			else
 			{
-				return 0.01;
+				isNotFollowing = true;
 			}
+
+			//0 is passive or passive flee
+			if (_this->TamedAggressionLevelField() == 0)
+			{
+				isPassiveAggressive = true;
+			}
+			else
+			{
+				isPassiveAggressive = false;
+			}
+
+			//get passive flee status
+			isPassiveFlee = _this->bPassiveFlee()();
+
+			//get ingoring whistle status
+			isIgnoringWhistles = _this->bIgnoreAllWhistles()();
+
+			//get neutered status
+			isNeutered = _this->bNeutered()();
+
+			//get rider status
+			hasNoRider = !(_this->bHasRider()());
+
+			//get inventory weight and check if it's empty
+			float* currentWeight = charStatus->CurrentStatusValuesField()() + 7;
+			if (*currentWeight > 0)
+			{
+				hasNoInventory = true;
+			}
+			else
+			{
+				hasNoInventory = false;
+			}
+
+			//check for enemy structures nearby		
+			TArray<AActor*> AllStructures;
+			UGameplayStatics::GetAllActorsOfClass(reinterpret_cast<UObject*>
+				(ArkApi::GetApiUtils().GetWorld()), APrimalStructure::GetPrivateStaticClass(), &AllStructures);
+
+			for (AActor* StructureActor : AllStructures)
+			{
+				if (StructureActor)
+				{
+					if (StructureActor->TargetingTeamField() > 0 && _this->TargetingTeamField() != StructureActor->TargetingTeamField())
+					{
+						APrimalStructure* Structure = static_cast<APrimalStructure*>(StructureActor);
+						if (FVector::Distance(_this->RootComponentField()->RelativeLocationField(), Structure->RootComponentField()->RelativeLocationField()) <= DinoPassiveProtection::MinimumEnemyStructureDistance)
+						{
+							isNotNearEnemyStructures = false;
+							break;
+						}
+						else
+						{
+							isNotNearEnemyStructures = true;
+						}
+					}
+				}
+			}
+
+			//Check if health is above threshold percentage
+			float* currentHealth = charStatus->CurrentStatusValuesField()();
+			float* maxHealth = charStatus->MaxStatusValuesField()();
+			if (*currentHealth > (*maxHealth * (DinoPassiveProtection::MinimumHealthPercentage / 100.f)))
+			{
+				isHealthAboveMin = true;
+			}
+			else
+			{
+				isHealthAboveMin = false;
+			}
+			Log::GetLog()->warn("Dino name: {}", DinoName.ToString());
+			Log::GetLog()->warn("Not Following a target: ", isNotFollowing);
+			Log::GetLog()->warn("Dino is Passive: {}", isPassiveAggressive);
+			Log::GetLog()->warn("Dino is passive flee: {}", isPassiveFlee);
+			Log::GetLog()->warn("Dino is ignore whistle: {}", isIgnoringWhistles);
+			Log::GetLog()->warn("Dino is neutered: {}", isNeutered);
+			Log::GetLog()->warn("Dino has rider: {}", hasNoRider);
+			Log::GetLog()->warn("Dino has no inventory: {}", hasNoInventory);
+			Log::GetLog()->warn("Dino not near enemy Structures: {}", isNotNearEnemyStructures);
+			Log::GetLog()->warn("Dino is above min health: {}", isHealthAboveMin);
+
+			if (EventInstigator && !EventInstigator->IsLocalController() && EventInstigator->IsA(AShooterPlayerController::StaticClass()))
+			{
+				uint64 steam_id = ArkApi::GetApiUtils().GetSteamIdFromController(EventInstigator);
+				AShooterPlayerController* player = ArkApi::GetApiUtils().FindPlayerFromSteamId(steam_id);
+				ArkApi::GetApiUtils().SendNotification(player, DinoPassiveProtection::MessageColor, DinoPassiveProtection::MessageTextSize, DinoPassiveProtection::MessageDisplayDelay, nullptr, *DinoPassiveProtection::PassiveProtectedDinoTakingDamageMessage);
+			}
+
+			//build config array
+			bool configConditions[] = {
+				DinoPassiveProtection::RequiresNotFollowing,
+				DinoPassiveProtection::RequiresPassiveFlee,
+				DinoPassiveProtection::RequiresIgnoreWhistle,
+				DinoPassiveProtection::RequiresNeutered,
+				DinoPassiveProtection::RequiresNoRider,
+				DinoPassiveProtection::RequiresNoInventory,
+				DinoPassiveProtection::RequiresNoNearbyEnemyStructures,
+				true
+			};
+
+			//build hook vars array
+			bool hookActuals[] = {
+				 isNotFollowing,
+				 (isPassiveAggressive && isPassiveFlee),
+				 isIgnoringWhistles,
+				 isNeutered,
+				 hasNoRider,
+				 hasNoInventory,
+				 isNotNearEnemyStructures,
+				 isHealthAboveMin
+			};
+
+			for (int i = 0; i < 8 ; ++i)
+			{
+				if (configConditions[i] && !hookActuals[i])
+					return APrimalDinoCharacter_TakeDamage_original(_this, Damage, DamageEvent, EventInstigator, DamageCauser);
+			}
+			
+			*currentHealth += APrimalDinoCharacter_TakeDamage_original(_this, 5, DamageEvent, EventInstigator, DamageCauser);;
+			return 0;
 		}
 	}
-
-	/*if (DamageEvent)
-	{
-		FString descr;
-		DamageEvent->DamageTypeClassField().uClass->ClassConfigNameField().ToString(&descr);
-		Log::GetLog()->warn("DamageEvent: {}", descr.ToString());
-	}
-
-	if (EventInstigator)
-	{
-		FString descr;
-		EventInstigator->GetHumanReadableName(&descr);
-		Log::GetLog()->warn("EventInstigator: {}", descr.ToString());
-	}
-
-	if (DamageCauser)
-	{
-		FString descr;
-		DamageCauser->GetHumanReadableName(&descr);
-		Log::GetLog()->warn("DamageCauser: {}", descr.ToString());
-	}*/
 	return APrimalDinoCharacter_TakeDamage_original(_this, Damage, DamageEvent, EventInstigator, DamageCauser);
 }
 
@@ -112,6 +182,12 @@ void Load()
 		&APrimalDinoCharacter_TakeDamage_original);
 }
 
+void Unload()
+{
+
+	ArkApi::GetHooks().DisableHook("APrimalDinoCharacter.TakeDamage", &Hook_APrimalDinoCharacter_TakeDamage);
+}
+
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
 	switch (ul_reason_for_call)
@@ -120,6 +196,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 		Load();
 		break;
 	case DLL_PROCESS_DETACH:
+		Unload();
 		break;
 	}
 	return TRUE;

@@ -159,6 +159,15 @@
   <ItemGroup>
     <ClCompile Include="DinoPassiveProtection.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DPP.h" />
+    <ClInclude Include="DPPConfig.h" />
+    <ClInclude Include="json.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="config.json" />
+    <None Include="PluginInfo.json" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
