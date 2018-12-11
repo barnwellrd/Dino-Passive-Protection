@@ -8,8 +8,8 @@
     "RequiresNoInventory": true,
     "RequiresNoNearbyEnemyStructures": true,
 
-    "MinimumEnemyStructureDistance": 10,
-    "MinimumHealthPercentage": 100,
+    "MinimumEnemyStructureDistance": 10.0,
+    "MinimumHealthPercentage": 100.0,
 
     "MessageTextSize": 1.4,
     "MessageDisplayDelay": 10,
@@ -18,8 +18,8 @@
       0.0,
       0.0,
       0.0
-    ]
-  },
+    ],
 
-  "PassiveProtectedDinoTakingDamageMessage":  "This dino is under Passive Protection!"
+    "PassiveProtectedDinoTakingDamageMessage": "This dino is under Passive Protection!"
+  }
 }

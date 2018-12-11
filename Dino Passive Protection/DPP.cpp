@@ -207,9 +207,10 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 
 void Load()
 {
-	InitCommands();
-	InitConfig();
 	Log::Get().Init("DinoPassiveProtection");
+
+	InitConfig();
+	InitCommands();
 
 	ArkApi::GetHooks().SetHook("APrimalDinoCharacter.TakeDamage", &Hook_APrimalDinoCharacter_TakeDamage,
 		&APrimalDinoCharacter_TakeDamage_original);
