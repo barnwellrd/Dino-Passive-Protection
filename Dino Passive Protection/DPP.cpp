@@ -96,7 +96,7 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 
 			//Check Arkhomes for better structure detection functions
 			//check for enemy structures nearby		
-			TArray<AActor*> AllStructures;
+			/*TArray<AActor*> AllStructures;
 			UGameplayStatics::GetAllActorsOfClass(reinterpret_cast<UObject*>
 				(ArkApi::GetApiUtils().GetWorld()), APrimalStructure::GetPrivateStaticClass(), &AllStructures);
 
@@ -107,7 +107,8 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 					if (StructureActor->TargetingTeamField() > 0 && _this->TargetingTeamField() != StructureActor->TargetingTeamField())
 					{
 						APrimalStructure* Structure = static_cast<APrimalStructure*>(StructureActor);
-						if (FVector::Distance(_this->RootComponentField()->RelativeLocationField(), Structure->RootComponentField()->RelativeLocationField()) <= DinoPassiveProtection::MinimumEnemyStructureDistance)
+						Log::GetLog()->warn(FVector::Distance(_this->RootComponentField()->RelativeLocationField(), Structure->RootComponentField()->RelativeLocationField()));
+						if (FVector::Distance(_this->RootComponentField()->RelativeLocationField(), Structure->RootComponentField()->RelativeLocationField()) <= (DinoPassiveProtection::MinimumEnemyStructureDistance * 300))
 						{
 							isNotNearEnemyStructures = false;
 							break;
@@ -117,6 +118,32 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 							isNotNearEnemyStructures = true;
 						}
 					}
+				}
+			}*/
+
+			//check for enemy structures nearby	
+			UWorld* world = ArkApi::GetApiUtils().GetWorld();
+			TArray<AActor*> new_actors;
+			TArray<AActor*> actors_ignore;
+			TArray<TEnumAsByte<enum EObjectTypeQuery>> types;
+
+			UKismetSystemLibrary::SphereOverlapActors_NEW(world, _this->RootComponentField()->RelativeLocationField(),
+				static_cast<float>((DinoPassiveProtection::MinimumEnemyStructureDistance * 300)), &types,
+				APrimalStructure::GetPrivateStaticClass(), &actors_ignore,
+				&new_actors);
+
+			for (const auto& actor : new_actors)
+			{
+				APrimalStructure* structure = static_cast<APrimalStructure*>(actor);
+				//Log::GetLog()->warn(FVector::Distance(_this->RootComponentField()->RelativeLocationField(), actor->RootComponentField()->RelativeLocationField()));
+				if (structure->TargetingTeamField() != _this->TargetingTeamField())
+				{
+					isNotNearEnemyStructures = false;
+					break;
+				}
+				else
+				{
+					isNotNearEnemyStructures = true;
 				}
 			}
 
@@ -133,7 +160,7 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 			}
 
 			//LOGGING
-			if (EventInstigator)
+			/*if (EventInstigator)
 			{
 				FString EIName;
 				EventInstigator->NameField().ToString(&EIName);
@@ -144,7 +171,7 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 			{
 				FString DCName;
 				DamageCauser->NameField().ToString(&DCName);
-				Log::GetLog()->warn("DamageCauser name: {}", DCName.ToString());
+				//Log::GetLog()->warn("DamageCauser name: {}", DCName.ToString());
 
 			}
 			Log::GetLog()->warn("Dino name: {}", DinoName.ToString());
@@ -153,11 +180,12 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 			Log::GetLog()->warn("Dino is passive flee: {}", isPassiveFlee);
 			Log::GetLog()->warn("Dino is ignore whistle: {}", isIgnoringWhistles);
 			Log::GetLog()->warn("Dino is neutered: {}", isNeutered);
-			Log::GetLog()->warn("Dino has rider: {}", hasNoRider);
+			Log::GetLog()->warn("Dino has no rider: {}", hasNoRider);
 			Log::GetLog()->warn("Dino has no inventory: {}", hasNoInventory);
 			Log::GetLog()->warn("Dino not near enemy Structures: {}", isNotNearEnemyStructures);
 			Log::GetLog()->warn("Dino is above min health: {}", isHealthAboveMin);
-
+			*/
+			
 			//build config array
 			bool configConditions[] = {
 				DinoPassiveProtection::RequiresNotFollowing,
