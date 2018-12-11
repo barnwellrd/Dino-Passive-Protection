@@ -157,10 +157,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DinoPassiveProtection.cpp" />
+    <ClCompile Include="DPP.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DPP.h" />
+    <ClInclude Include="DPPCommands.h" />
     <ClInclude Include="DPPConfig.h" />
     <ClInclude Include="json.hpp" />
   </ItemGroup>

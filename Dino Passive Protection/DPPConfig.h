@@ -29,5 +29,4 @@ inline void InitConfig()
 	DinoPassiveProtection::TempConfig = DinoPassiveProtection::config["General"]["MessageColor"];
 	DinoPassiveProtection::MessageColor = FLinearColor(DinoPassiveProtection::TempConfig[0], DinoPassiveProtection::TempConfig[1], DinoPassiveProtection::TempConfig[2], DinoPassiveProtection::TempConfig[3]);
 	DinoPassiveProtection::PassiveProtectedDinoTakingDamageMessage = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["PassiveProtectedDinoTakingDamageMessage"]).c_str());
-
 }

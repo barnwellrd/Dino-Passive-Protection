@@ -1,8 +1,7 @@
 #include <API/ARK/Ark.h>
 #include "DPP.h"
 #include "DPPConfig.h"
-//#include "NewPlayerProtectionHooks.h"
-//#include "NewPlayerProtectionCommands.h"
+#include "DPPCommands.h"
 
 #pragma comment(lib, "ArkApi.lib")
 
@@ -14,11 +13,23 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 	//_this != NULL
 	if (_this)
 	{
+		//NEEDS ability to ignore environment damage like falling through the map and lava
 		//Dino is a tribe dino
 		if (_this->TargetingTeamField() > 10000)
 		{
+			//if EventInstigator != Null
+			if (EventInstigator)
+			{
+				//allow owning team to damage dino
+				if (_this->TargetingTeamField() == EventInstigator->TargetingTeamField())
+				{
+					return APrimalDinoCharacter_TakeDamage_original(_this, Damage, DamageEvent, EventInstigator, DamageCauser);
+				}
+			}
+			
 			UPrimalCharacterStatusComponent* charStatus = _this->GetCharacterStatusComponent();
 
+			//variable declarations
 			FString DinoName;
 			bool isNotFollowing;
 			bool isPassiveAggressive;
@@ -83,6 +94,7 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 				hasNoInventory = false;
 			}
 
+			//Check Arkhomes for better structure detection functions
 			//check for enemy structures nearby		
 			TArray<AActor*> AllStructures;
 			UGameplayStatics::GetAllActorsOfClass(reinterpret_cast<UObject*>
@@ -119,6 +131,22 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 			{
 				isHealthAboveMin = false;
 			}
+
+			//LOGGING
+			if (EventInstigator)
+			{
+				FString EIName;
+				EventInstigator->NameField().ToString(&EIName);
+				Log::GetLog()->warn("EventInstigator name: {}", EIName.ToString());
+
+			}
+			if (DamageCauser)
+			{
+				FString DCName;
+				DamageCauser->NameField().ToString(&DCName);
+				Log::GetLog()->warn("DamageCauser name: {}", DCName.ToString());
+
+			}
 			Log::GetLog()->warn("Dino name: {}", DinoName.ToString());
 			Log::GetLog()->warn("Not Following a target: ", isNotFollowing);
 			Log::GetLog()->warn("Dino is Passive: {}", isPassiveAggressive);
@@ -129,13 +157,6 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 			Log::GetLog()->warn("Dino has no inventory: {}", hasNoInventory);
 			Log::GetLog()->warn("Dino not near enemy Structures: {}", isNotNearEnemyStructures);
 			Log::GetLog()->warn("Dino is above min health: {}", isHealthAboveMin);
-
-			if (EventInstigator && !EventInstigator->IsLocalController() && EventInstigator->IsA(AShooterPlayerController::StaticClass()))
-			{
-				uint64 steam_id = ArkApi::GetApiUtils().GetSteamIdFromController(EventInstigator);
-				AShooterPlayerController* player = ArkApi::GetApiUtils().FindPlayerFromSteamId(steam_id);
-				ArkApi::GetApiUtils().SendNotification(player, DinoPassiveProtection::MessageColor, DinoPassiveProtection::MessageTextSize, DinoPassiveProtection::MessageDisplayDelay, nullptr, *DinoPassiveProtection::PassiveProtectedDinoTakingDamageMessage);
-			}
 
 			//build config array
 			bool configConditions[] = {
@@ -161,13 +182,23 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 				 isHealthAboveMin
 			};
 
-			for (int i = 0; i < 8 ; ++i)
+			//Compare config values to ingame values to decide if dino is protectected or not
+			for (int i = 0; i < sizeof(configConditions) ; ++i)
 			{
 				if (configConditions[i] && !hookActuals[i])
 					return APrimalDinoCharacter_TakeDamage_original(_this, Damage, DamageEvent, EventInstigator, DamageCauser);
 			}
 			
-			*currentHealth += APrimalDinoCharacter_TakeDamage_original(_this, 5, DamageEvent, EventInstigator, DamageCauser);;
+			//sends notification if event instagator is another player
+			if (EventInstigator && !EventInstigator->IsLocalController() && EventInstigator->IsA(AShooterPlayerController::StaticClass()))
+			{
+				uint64 steam_id = ArkApi::GetApiUtils().GetSteamIdFromController(EventInstigator);
+				AShooterPlayerController* player = ArkApi::GetApiUtils().FindPlayerFromSteamId(steam_id);
+				ArkApi::GetApiUtils().SendNotification(player, DinoPassiveProtection::MessageColor, DinoPassiveProtection::MessageTextSize, DinoPassiveProtection::MessageDisplayDelay, nullptr, *DinoPassiveProtection::PassiveProtectedDinoTakingDamageMessage);
+			}
+
+			//causes damage of 5 and heals for 5 damage as well
+			*currentHealth += APrimalDinoCharacter_TakeDamage_original(_this, 5, DamageEvent, EventInstigator, DamageCauser);
 			return 0;
 		}
 	}
@@ -176,6 +207,8 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 
 void Load()
 {
+	InitCommands();
+	InitConfig();
 	Log::Get().Init("DinoPassiveProtection");
 
 	ArkApi::GetHooks().SetHook("APrimalDinoCharacter.TakeDamage", &Hook_APrimalDinoCharacter_TakeDamage,
@@ -184,7 +217,7 @@ void Load()
 
 void Unload()
 {
-
+	RemoveCommands();
 	ArkApi::GetHooks().DisableHook("APrimalDinoCharacter.TakeDamage", &Hook_APrimalDinoCharacter_TakeDamage);
 }
 
