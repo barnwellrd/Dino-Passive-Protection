@@ -8,7 +8,7 @@
     "RequiresNoInventory": true,
     "RequiresNoNearbyEnemyStructures": true,
 
-    "MinimumEnemyStructureDistance": 10.0,
+    "MinimumEnemyStructureDistanceInFoundations": 10.0,
     "MinimumHealthPercentage": 100.0,
 
     "MessageTextSize": 1.4,

@@ -128,7 +128,7 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 			TArray<TEnumAsByte<enum EObjectTypeQuery>> types;
 
 			UKismetSystemLibrary::SphereOverlapActors_NEW(world, _this->RootComponentField()->RelativeLocationField(),
-				static_cast<float>((DinoPassiveProtection::MinimumEnemyStructureDistance * 300)), &types,
+				static_cast<float>((DinoPassiveProtection::MinimumEnemyStructureDistanceInFoundations * 300)), &types,
 				APrimalStructure::GetPrivateStaticClass(), &actors_ignore,
 				&new_actors);
 

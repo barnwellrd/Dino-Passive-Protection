@@ -23,7 +23,7 @@ inline void InitConfig()
 	DinoPassiveProtection::RequiresNoRider = DinoPassiveProtection::config["General"]["RequiresNoRider"];
 	DinoPassiveProtection::RequiresNoInventory = DinoPassiveProtection::config["General"]["RequiresNoInventory"];
 	DinoPassiveProtection::RequiresNoNearbyEnemyStructures = DinoPassiveProtection::config["General"]["RequiresNoNearbyEnemyStructures"];
-	DinoPassiveProtection::MinimumEnemyStructureDistance = DinoPassiveProtection::config["General"]["MinimumEnemyStructureDistance"];
+	DinoPassiveProtection::MinimumEnemyStructureDistanceInFoundations = DinoPassiveProtection::config["General"]["MinimumEnemyStructureDistanceInFoundations"];
 	DinoPassiveProtection::MinimumHealthPercentage = DinoPassiveProtection::config["General"]["MinimumHealthPercentage"];
 	DinoPassiveProtection::MessageTextSize = DinoPassiveProtection::config["General"]["MessageTextSize"];
 	DinoPassiveProtection::MessageDisplayDelay = DinoPassiveProtection::config["General"]["MessageDisplayDelay"];

@@ -13,7 +13,7 @@ namespace DinoPassiveProtection
 	bool RequiresNoRider;
 	bool RequiresNoInventory;
 	bool RequiresNoNearbyEnemyStructures;
-	float MinimumEnemyStructureDistance;
+	float MinimumEnemyStructureDistanceInFoundations;
 	float MinimumHealthPercentage;
 	float MessageTextSize;
 	float MessageDisplayDelay;
