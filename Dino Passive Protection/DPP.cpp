@@ -87,11 +87,11 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 			float* currentWeight = charStatus->CurrentStatusValuesField()() + 7;
 			if (*currentWeight > 0)
 			{
-				hasNoInventory = true;
+				hasNoInventory = false;
 			}
 			else
 			{
-				hasNoInventory = false;
+				hasNoInventory = true;
 			}
 
 			//Check Arkhomes for better structure detection functions
@@ -160,7 +160,7 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 			}
 
 			//LOGGING
-			/*if (EventInstigator)
+			if (EventInstigator)
 			{
 				FString EIName;
 				EventInstigator->NameField().ToString(&EIName);
@@ -184,7 +184,7 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 			Log::GetLog()->warn("Dino has no inventory: {}", hasNoInventory);
 			Log::GetLog()->warn("Dino not near enemy Structures: {}", isNotNearEnemyStructures);
 			Log::GetLog()->warn("Dino is above min health: {}", isHealthAboveMin);
-			*/
+			
 			
 			//build config array
 			bool configConditions[] = {
