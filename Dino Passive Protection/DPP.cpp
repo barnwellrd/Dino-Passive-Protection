@@ -160,6 +160,7 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 			}
 
 			//LOGGING
+			/*
 			if (EventInstigator)
 			{
 				FString EIName;
@@ -184,7 +185,7 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 			Log::GetLog()->warn("Dino has no inventory: {}", hasNoInventory);
 			Log::GetLog()->warn("Dino not near enemy Structures: {}", isNotNearEnemyStructures);
 			Log::GetLog()->warn("Dino is above min health: {}", isHealthAboveMin);
-			
+			*/
 			
 			//build config array
 			bool configConditions[] = {
