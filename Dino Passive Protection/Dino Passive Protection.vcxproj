@@ -23,7 +23,7 @@
     <ProjectGuid>{C71E23E2-48B7-402B-8946-5285F477A279}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>DinoPassiveProtection</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
     <ProjectName>DinoPassiveProtection</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -82,7 +82,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>D:\ArkAPI\Plugins_Source\Permissions\Permissions\Public;D:\ArkAPI\ArkAPI_Source\version\Core\Public;$(IncludePath)</IncludePath>
+    <IncludePath>D:\ArkAPI\Plugins_Source\Permissions\Permissions\Public;D:\ArkAPI\ARK-Server-API-master\version\Core\Public;$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -142,7 +142,7 @@
       </SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\ArkAPI\ArkAPI_Source\version\Core\Public;D:\ArkAPI\Plugins_Source\Permissions\Permissions\Public;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\ArkAPI\ARK-Server-API-master\version\Core\Public;D:\ArkAPI\Plugins_Source\Permissions\Permissions\Public;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -152,7 +152,7 @@
       <OptimizeReferences>
       </OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\ArkAPI\ArkAPI_Source\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\ArkAPI\ARK-Server-API-master\out_lib;D:\ArkAPI\ARK-Server-API-master\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>Winmm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ArkApi.lib;Permissions.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

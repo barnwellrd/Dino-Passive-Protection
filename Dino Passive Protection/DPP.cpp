@@ -219,7 +219,7 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 			}
 			
 			//sends notification if event instagator is another player
-			if (EventInstigator && !EventInstigator->IsLocalController() && EventInstigator->IsA(AShooterPlayerController::StaticClass()))
+			if (EventInstigator && !EventInstigator->IsLocalController() && EventInstigator->IsA(AShooterPlayerController::GetPrivateStaticClass()))
 			{
 				uint64 steam_id = ArkApi::GetApiUtils().GetSteamIdFromController(EventInstigator);
 				AShooterPlayerController* player = ArkApi::GetApiUtils().FindPlayerFromSteamId(steam_id);
