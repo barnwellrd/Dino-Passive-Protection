@@ -1,15 +1,17 @@
 {
   "General": {
+    "ProtectBabyDino": false, 
+    "RequiresNotTurretMode": true,
     "RequiresNotFollowing": true,
-    "RequiresPassiveFlee": true,
-    "RequiresIgnoreWhistle": true,
-    "RequiresNeutered": true,
+    "RequiresPassiveFlee": false,
+    "RequiresIgnoreWhistle": false,
+    "RequiresNeutered": false,
     "RequiresNoRider": true,
     "RequiresNoInventory": true,
     "RequiresNoNearbyEnemyStructures": true,
 
-    "MinimumEnemyStructureDistanceInFoundations": 10.0,
-    "MinimumHealthPercentage": 100.0,
+    "MinimumEnemyStructureDistanceInFoundations": 15.0,
+    "MinimumHealthPercentage": 99.0,
 
     "MessageTextSize": 1.4,
     "MessageDisplayDelay": 10,
