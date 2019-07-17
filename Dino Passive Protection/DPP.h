@@ -6,6 +6,8 @@
 
 namespace DinoPassiveProtection
 {
+	bool ProtectBabyDino;
+	bool RequiresNotTurretMode;
 	bool RequiresNotFollowing;
 	bool RequiresPassiveFlee;
 	bool RequiresIgnoreWhistle;
@@ -22,6 +24,3 @@ namespace DinoPassiveProtection
 
 	nlohmann::json config, TempConfig;
 }
-
-
-
