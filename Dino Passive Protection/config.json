@@ -1,17 +1,17 @@
 {
   "General": {
-    "ProtectBabyDino": false, 
-    "RequiresNotTurretMode": true,
-    "RequiresNotFollowing": true,
+    "EnableConsoleDebugging": false,
+    "RequiresPassive": true,
     "RequiresPassiveFlee": false,
-    "RequiresIgnoreWhistle": false,
-    "RequiresNeutered": false,
     "RequiresNoRider": true,
     "RequiresNoInventory": true,
-    "RequiresNoNearbyEnemyStructures": true,
-
-    "MinimumEnemyStructureDistanceInFoundations": 15.0,
+    "RequiresIgnoreWhistle": false,
+    "RequiresNeutered": false,
     "MinimumHealthPercentage": 99.0,
+    "RequiresNoNearbyEnemyStructures": true,
+    "MinimumEnemyStructureDistanceInFoundations": 15.0,
+    "RequiresNotTurretMode": true,
+    "ProtectBabyDino": true,
 
     "MessageTextSize": 1.4,
     "MessageDisplayDelay": 10,
@@ -22,6 +22,11 @@
       0.0
     ],
 
-    "PassiveProtectedDinoTakingDamageMessage": "This dino is under Passive Protection!"
+    "PassiveProtectedDinoMessage": "This dino is under Passive Protection!.",
+    "UnprotectedDinoMessage": "This dino is NOT under Passive Protection!",
+    "NotTribeSameMessage": "This dino is not in your tribe!",
+    "NotADinoMessage": "This target is not a dino!",
+    "DPPChatCommandPrefix": "!",
+    "DPPInvalidCommand": "Invalid chat command!"
   }
 }

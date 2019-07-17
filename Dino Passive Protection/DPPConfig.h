@@ -16,20 +16,31 @@ inline void InitConfig()
 	file >> DinoPassiveProtection::config;
 	file.close();
 
-	DinoPassiveProtection::ProtectBabyDino = DinoPassiveProtection::config["General"]["ProtectBabyDino"];
-	DinoPassiveProtection::RequiresNotTurretMode = DinoPassiveProtection::config["General"]["RequiresNotTurretMode"];
-	DinoPassiveProtection::RequiresNotFollowing = DinoPassiveProtection::config["General"]["RequiresNotFollowing"];
+	DinoPassiveProtection::EnableConsoleDebugging = DinoPassiveProtection::config["General"]["EnableConsoleDebugging"];
+
+	//Get Protection Parameters
+	DinoPassiveProtection::RequiresPassive = DinoPassiveProtection::config["General"]["RequiresPassive"];
 	DinoPassiveProtection::RequiresPassiveFlee = DinoPassiveProtection::config["General"]["RequiresPassiveFlee"];
-	DinoPassiveProtection::RequiresIgnoreWhistle = DinoPassiveProtection::config["General"]["RequiresIgnoreWhistle"];
-	DinoPassiveProtection::RequiresNeutered = DinoPassiveProtection::config["General"]["RequiresNeutered"];
 	DinoPassiveProtection::RequiresNoRider = DinoPassiveProtection::config["General"]["RequiresNoRider"];
 	DinoPassiveProtection::RequiresNoInventory = DinoPassiveProtection::config["General"]["RequiresNoInventory"];
+	//DinoPassiveProtection::RequiresNotFollowing = DinoPassiveProtection::config["General"]["RequiresNotFollowing"];
+	DinoPassiveProtection::RequiresIgnoreWhistle = DinoPassiveProtection::config["General"]["RequiresIgnoreWhistle"];
+	DinoPassiveProtection::RequiresNeutered = DinoPassiveProtection::config["General"]["RequiresNeutered"];
+	DinoPassiveProtection::MinimumHealthPercentage = DinoPassiveProtection::config["General"]["MinimumHealthPercentage"];
 	DinoPassiveProtection::RequiresNoNearbyEnemyStructures = DinoPassiveProtection::config["General"]["RequiresNoNearbyEnemyStructures"];
 	DinoPassiveProtection::MinimumEnemyStructureDistanceInFoundations = DinoPassiveProtection::config["General"]["MinimumEnemyStructureDistanceInFoundations"];
-	DinoPassiveProtection::MinimumHealthPercentage = DinoPassiveProtection::config["General"]["MinimumHealthPercentage"];
+	DinoPassiveProtection::RequiresNotTurretMode = DinoPassiveProtection::config["General"]["RequiresNotTurretMode"];
+	DinoPassiveProtection::ProtectBabyDino = DinoPassiveProtection::config["General"]["ProtectBabyDino"];
+
+	//Get Message display settings
 	DinoPassiveProtection::MessageTextSize = DinoPassiveProtection::config["General"]["MessageTextSize"];
 	DinoPassiveProtection::MessageDisplayDelay = DinoPassiveProtection::config["General"]["MessageDisplayDelay"];
 	DinoPassiveProtection::TempConfig = DinoPassiveProtection::config["General"]["MessageColor"];
 	DinoPassiveProtection::MessageColor = FLinearColor(DinoPassiveProtection::TempConfig[0], DinoPassiveProtection::TempConfig[1], DinoPassiveProtection::TempConfig[2], DinoPassiveProtection::TempConfig[3]);
-	DinoPassiveProtection::PassiveProtectedDinoTakingDamageMessage = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["PassiveProtectedDinoTakingDamageMessage"]).c_str());
-	}
+	DinoPassiveProtection::PassiveProtectedDinoMessage = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["PassiveProtectedDinoMessage"]).c_str());
+	DinoPassiveProtection::UnprotectedDinoMessage = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["UnprotectedDinoMessage"]).c_str());
+	DinoPassiveProtection::NotTribeSameMessage = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["NotTribeSameMessage"]).c_str());
+	DinoPassiveProtection::NotADinoMessage = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["NotADinoMessage"]).c_str());
+	DinoPassiveProtection::DPPChatCommandPrefix = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["DPPChatCommandPrefix"]).c_str());
+	DinoPassiveProtection::DPPInvalidCommand = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["DPPInvalidCommand"]).c_str());
+}
