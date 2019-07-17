@@ -1,6 +1,6 @@
 #pragma once
 #include <fstream>
-#include <Permissions.h>
+#include <ARKPermissions.h>
 
 
 inline void InitConfig()
@@ -16,6 +16,8 @@ inline void InitConfig()
 	file >> DinoPassiveProtection::config;
 	file.close();
 
+	DinoPassiveProtection::ProtectBabyDino = DinoPassiveProtection::config["General"]["ProtectBabyDino"];
+	DinoPassiveProtection::RequiresNotTurretMode = DinoPassiveProtection::config["General"]["RequiresNotTurretMode"];
 	DinoPassiveProtection::RequiresNotFollowing = DinoPassiveProtection::config["General"]["RequiresNotFollowing"];
 	DinoPassiveProtection::RequiresPassiveFlee = DinoPassiveProtection::config["General"]["RequiresPassiveFlee"];
 	DinoPassiveProtection::RequiresIgnoreWhistle = DinoPassiveProtection::config["General"]["RequiresIgnoreWhistle"];
