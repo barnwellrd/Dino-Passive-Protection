@@ -7,9 +7,8 @@
 
 DECLARE_HOOK(APrimalDinoCharacter_TakeDamage, float, APrimalDinoCharacter*, float, FDamageEvent*, AController*, AActor*);
 
-float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Damage, FDamageEvent* DamageEvent,
-	AController* EventInstigator, AActor* DamageCauser)
-{
+float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Damage, FDamageEvent* DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{	
 	//_this != NULL
 	if (_this)
 	{
@@ -26,11 +25,14 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 					return APrimalDinoCharacter_TakeDamage_original(_this, Damage, DamageEvent, EventInstigator, DamageCauser);
 				}
 			}
-			
+
+
 			UPrimalCharacterStatusComponent* charStatus = _this->GetCharacterStatusComponent();
 
 			//variable declarations
 			FString DinoName;
+			bool isBaby;
+			bool isNotInTurretMode;
 			bool isNotFollowing;
 			bool isPassiveAggressive;
 			bool isPassiveFlee;
@@ -40,6 +42,7 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 			bool hasNoInventory;
 			bool isNotNearEnemyStructures;
 			bool isHealthAboveMin;
+			
 
 			//get and print Dino Name
 			_this->GetDinoDescriptiveName(&DinoName);
@@ -70,6 +73,12 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 			{
 				isPassiveAggressive = false;
 			}
+
+			//get info if it's a baby
+			isBaby = _this->bIsBaby()();
+
+			//get Turret mode status
+			isNotInTurretMode = !(_this->bIsInTurretMode()());
 
 			//get passive flee status
 			isPassiveFlee = _this->bPassiveFlee()();
@@ -158,9 +167,14 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 			{
 				isHealthAboveMin = false;
 			}
-
+			if (DinoPassiveProtection::ProtectBabyDino && isBaby)
+			{
+				isHealthAboveMin = true;
+			}
 			//LOGGING
 			/*
+			Log::GetLog()->warn("## Beginning of debug ##");
+			Log::GetLog()->warn("############################");
 			if (EventInstigator)
 			{
 				FString EIName;
@@ -172,23 +186,29 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 			{
 				FString DCName;
 				DamageCauser->NameField().ToString(&DCName);
-				//Log::GetLog()->warn("DamageCauser name: {}", DCName.ToString());
+				Log::GetLog()->warn("DamageCauser name: {}", DCName.ToString());
 
 			}
+
 			Log::GetLog()->warn("Dino name: {}", DinoName.ToString());
-			Log::GetLog()->warn("Not Following a target: ", isNotFollowing);
+			Log::GetLog()->warn("Dino is a Baby: {}", isBaby);
+			Log::GetLog()->warn("Dino isn't in Turret mode: {}", isNotInTurretMode);
+			Log::GetLog()->warn("Dino isn't Following a target: ", isNotFollowing);
 			Log::GetLog()->warn("Dino is Passive: {}", isPassiveAggressive);
-			Log::GetLog()->warn("Dino is passive flee: {}", isPassiveFlee);
-			Log::GetLog()->warn("Dino is ignore whistle: {}", isIgnoringWhistles);
-			Log::GetLog()->warn("Dino is neutered: {}", isNeutered);
-			Log::GetLog()->warn("Dino has no rider: {}", hasNoRider);
-			Log::GetLog()->warn("Dino has no inventory: {}", hasNoInventory);
-			Log::GetLog()->warn("Dino not near enemy Structures: {}", isNotNearEnemyStructures);
-			Log::GetLog()->warn("Dino is above min health: {}", isHealthAboveMin);
+			Log::GetLog()->warn("Dino is Passive flee: {}", isPassiveFlee);		
+			Log::GetLog()->warn("Dino is Ignoring whistle: {}", isIgnoringWhistles);
+			Log::GetLog()->warn("Dino is Neutered: {}", isNeutered);
+			Log::GetLog()->warn("Dino has No rider: {}", hasNoRider);
+			Log::GetLog()->warn("Dino has No inventory: {}", hasNoInventory);
+			Log::GetLog()->warn("Dino isn't Near enemy Structures: {}", isNotNearEnemyStructures);
+			Log::GetLog()->warn("Dino is Above min health: {}", isHealthAboveMin);
+			Log::GetLog()->warn("############################");
+			Log::GetLog()->warn("## End of debug ##");
 			*/
 			
 			//build config array
 			bool configConditions[] = {
+				DinoPassiveProtection::RequiresNotTurretMode,
 				DinoPassiveProtection::RequiresNotFollowing,
 				DinoPassiveProtection::RequiresPassiveFlee,
 				DinoPassiveProtection::RequiresIgnoreWhistle,
@@ -201,6 +221,7 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 
 			//build hook vars array
 			bool hookActuals[] = {
+				 isNotInTurretMode,
 				 isNotFollowing,
 				 (isPassiveAggressive && isPassiveFlee),
 				 isIgnoringWhistles,
@@ -216,8 +237,7 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 			{
 				if (configConditions[i] && !hookActuals[i])
 					return APrimalDinoCharacter_TakeDamage_original(_this, Damage, DamageEvent, EventInstigator, DamageCauser);
-			}
-			
+			}	
 			//sends notification if event instagator is another player
 			if (EventInstigator && !EventInstigator->IsLocalController() && EventInstigator->IsA(AShooterPlayerController::GetPrivateStaticClass()))
 			{
@@ -241,8 +261,7 @@ void Load()
 	InitConfig();
 	InitCommands();
 
-	ArkApi::GetHooks().SetHook("APrimalDinoCharacter.TakeDamage", &Hook_APrimalDinoCharacter_TakeDamage,
-		&APrimalDinoCharacter_TakeDamage_original);
+	ArkApi::GetHooks().SetHook("APrimalDinoCharacter.TakeDamage", &Hook_APrimalDinoCharacter_TakeDamage, &APrimalDinoCharacter_TakeDamage_original);
 }
 
 void Unload()
