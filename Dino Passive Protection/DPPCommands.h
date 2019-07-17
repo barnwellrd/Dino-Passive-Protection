@@ -12,17 +12,33 @@ inline void ConsoleReloadConfig(APlayerController* player, FString* cmd, bool bo
 
 inline void RconReloadConfig(RCONClientConnection* rcon_connection, RCONPacket* rcon_packet, UWorld*)
 {
-	InitConfig();
+	FString reply;
+	
+	try
+	{
+		InitConfig();
+	}
+	catch (const std::exception& error)
+	{
+		Log::GetLog()->error(error.what());
+
+		reply = error.what();
+		rcon_connection->SendMessageW(rcon_packet->Id, 0, &reply);
+		return;
+	}
+
+	reply = "Reloaded config";
+	rcon_connection->SendMessageW(rcon_packet->Id, 0, &reply);
 }
 
 inline void InitCommands()
 {
-	ArkApi::GetCommands().AddConsoleCommand("DPP.ReloadConfig", &ConsoleReloadConfig);
-	ArkApi::GetCommands().AddRconCommand("DPP.ReloadConfig", &RconReloadConfig);
+	ArkApi::GetCommands().AddConsoleCommand("DPP.Reload", &ConsoleReloadConfig);
+	ArkApi::GetCommands().AddRconCommand("DPP.Reload", &RconReloadConfig);
 }
 
 inline void RemoveCommands()
 {
-	ArkApi::GetCommands().RemoveConsoleCommand("DPP.ReloadConfig");
-	ArkApi::GetCommands().RemoveRconCommand("DPP.ReloadConfig");
+	ArkApi::GetCommands().RemoveConsoleCommand("DPP.Reload");
+	ArkApi::GetCommands().RemoveRconCommand("DPP.Reload");
 }
