@@ -23,7 +23,7 @@ inline void InitConfig()
 	DinoPassiveProtection::RequiresPassiveFlee = DinoPassiveProtection::config["General"]["RequiresPassiveFlee"];
 	DinoPassiveProtection::RequiresNoRider = DinoPassiveProtection::config["General"]["RequiresNoRider"];
 	DinoPassiveProtection::RequiresNoInventory = DinoPassiveProtection::config["General"]["RequiresNoInventory"];
-	//DinoPassiveProtection::RequiresNotFollowing = DinoPassiveProtection::config["General"]["RequiresNotFollowing"];
+	DinoPassiveProtection::RequiresNotFollowing = DinoPassiveProtection::config["General"]["RequiresNotFollowing"];
 	DinoPassiveProtection::RequiresIgnoreWhistle = DinoPassiveProtection::config["General"]["RequiresIgnoreWhistle"];
 	DinoPassiveProtection::RequiresNeutered = DinoPassiveProtection::config["General"]["RequiresNeutered"];
 	DinoPassiveProtection::MinimumHealthPercentage = DinoPassiveProtection::config["General"]["MinimumHealthPercentage"];
@@ -43,4 +43,27 @@ inline void InitConfig()
 	DinoPassiveProtection::NotADinoMessage = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["NotADinoMessage"]).c_str());
 	DinoPassiveProtection::DPPChatCommandPrefix = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["DPPChatCommandPrefix"]).c_str());
 	DinoPassiveProtection::DPPInvalidCommand = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["DPPInvalidCommand"]).c_str());
+	DinoPassiveProtection::NotADinoOrStructureMessage = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["NotADinoOrStructureMessage"]).c_str());
+
+	//Clear vector so that config reload is clean
+	DinoPassiveProtection::DinoBlacklist.clear();
+
+	//Load Blacklisted dinos from config
+	DinoPassiveProtection::TempConfig = DinoPassiveProtection::config["General"]["DinoBlacklist"];
+
+	for (nlohmann::json x : DinoPassiveProtection::TempConfig)
+	{
+		DinoPassiveProtection::DinoBlacklist.push_back(FString(ArkApi::Tools::Utf8Decode(x).c_str()));
+	}
+
+	//Clear vector so that config reload is clean
+	DinoPassiveProtection::StructureWhitelist.clear();
+
+	//Load Whitelisted structures from config
+	DinoPassiveProtection::TempConfig = DinoPassiveProtection::config["General"]["StructureWhitelist"];
+
+	for (nlohmann::json x : DinoPassiveProtection::TempConfig)
+	{
+		DinoPassiveProtection::StructureWhitelist.push_back(FString(ArkApi::Tools::Utf8Decode(x).c_str()));
+	}
 }

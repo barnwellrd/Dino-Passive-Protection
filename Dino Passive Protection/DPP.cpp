@@ -9,16 +9,20 @@ DECLARE_HOOK(APrimalDinoCharacter_TakeDamage, float, APrimalDinoCharacter*, floa
 
 float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Damage, FDamageEvent* DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {	
+
 	//_this != NULL
 	if (_this)
 	{
+
 		//NEEDS ability to ignore environment damage like falling through the map and lava
 		//Dino is a tribe dino
 		if (_this->TargetingTeamField() > 10000)
 		{
+
 			//if EventInstigator != Null
 			if (EventInstigator)
 			{
+
 				//allow owning team to damage dino
 				if (_this->TargetingTeamField() == EventInstigator->TargetingTeamField())
 				{
@@ -39,6 +43,7 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 					AShooterPlayerController* player = ArkApi::GetApiUtils().FindPlayerFromSteamId(steam_id);
 					ArkApi::GetApiUtils().SendNotification(player, DinoPassiveProtection::MessageColor, DinoPassiveProtection::MessageTextSize, DinoPassiveProtection::MessageDisplayDelay, nullptr, *DinoPassiveProtection::PassiveProtectedDinoMessage);
 				}
+
 				//get dino health variable
 				UPrimalCharacterStatusComponent* charStatus = _this->GetCharacterStatusComponent();
 				float* currentHealth = charStatus->CurrentStatusValuesField()();

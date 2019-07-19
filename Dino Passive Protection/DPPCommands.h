@@ -1,10 +1,13 @@
 #pragma once
 
+// "!dpp status"
+//command for retrieving aimed, owned dino's status
 inline void GetProtectionStatus(AShooterPlayerController* player)
 {
 	if (!player || !player->PlayerStateField() || ArkApi::IApiUtils::IsPlayerDead(player))
 		return;
 
+	//get aimed target
 	AActor* Actor = player->GetPlayerCharacter()->GetAimedActor(ECC_GameTraceChannel2, nullptr, 0.0, 0.0, nullptr, nullptr,
 		false, false);
 
@@ -48,6 +51,36 @@ inline void GetProtectionStatus(AShooterPlayerController* player)
 	}
 }
 
+// "!dpp getpath"
+//Get the PLugin's blueprint path of target dino or structure
+//May vary wildly from spawn Blueprint, so use this command's output for Whitelisting and Blacklisting
+inline void GetTargetPath(AShooterPlayerController* player)
+{
+	//if player is dead or doesn't exist, break
+	if (!player || !player->PlayerStateField() || ArkApi::IApiUtils::IsPlayerDead(player))
+		return;
+
+	//get aimed target
+	AActor* Actor = player->GetPlayerCharacter()->GetAimedActor(ECC_GameTraceChannel2, nullptr, 0.0, 0.0, nullptr, nullptr,
+		false, false);
+
+	//check if target is a dino or structure
+	if (Actor && (Actor->IsA(APrimalDinoCharacter::GetPrivateStaticClass()) || Actor->IsA(APrimalStructure::GetPrivateStaticClass())))
+	{
+		
+		ArkApi::GetApiUtils().SendNotification(player, DinoPassiveProtection::MessageColor, DinoPassiveProtection::MessageTextSize, DinoPassiveProtection::MessageDisplayDelay, nullptr,
+			"{}", DinoPassiveProtection::GetBlueprint(Actor).ToString());
+		Log::GetLog()->info("Blueprint Path From Command: {}", DinoPassiveProtection::GetBlueprint(Actor).ToString());
+	}
+	//target not a dino or structure
+	else
+	{
+		ArkApi::GetApiUtils().SendNotification(player, DinoPassiveProtection::MessageColor, DinoPassiveProtection::MessageTextSize, DinoPassiveProtection::MessageDisplayDelay, nullptr,
+			*DinoPassiveProtection::NotADinoOrStructureMessage);
+	}
+}
+
+//Function that filters chat commands
 inline void ChatCommand(AShooterPlayerController* player, FString* message, int mode)
 {
 	TArray<FString> parsed;
@@ -59,6 +92,10 @@ inline void ChatCommand(AShooterPlayerController* player, FString* message, int 
 		if (input.Compare("status") == 0)
 		{
 			GetProtectionStatus(player);
+		}
+		else if (input.Compare("getpath") == 0)
+		{
+			GetTargetPath(player);
 		}
 		else
 		{
@@ -73,6 +110,7 @@ inline void ChatCommand(AShooterPlayerController* player, FString* message, int 
 	}
 }
 
+//initialize chat commands
 inline void InitChatCommands()
 {
 	FString cmd1 = DinoPassiveProtection::DPPChatCommandPrefix;
@@ -80,6 +118,7 @@ inline void InitChatCommands()
 	ArkApi::GetCommands().AddChatCommand(cmd1, &ChatCommand);
 }
 
+//remove chat commands
 inline void RemoveChatCommands()
 {
 	FString cmd1 = DinoPassiveProtection::DPPChatCommandPrefix;
@@ -87,6 +126,7 @@ inline void RemoveChatCommands()
 	ArkApi::GetCommands().RemoveChatCommand(cmd1);
 }
 
+//Console command for reloading the config
 inline void ConsoleReloadConfig(APlayerController* player, FString* cmd, bool boolean)
 {
 	const auto shooter_controller = static_cast<AShooterPlayerController*>(player);
@@ -96,11 +136,13 @@ inline void ConsoleReloadConfig(APlayerController* player, FString* cmd, bool bo
 	{
 		return;
 	}
+
 	RemoveChatCommands();
 	InitConfig();
 	InitChatCommands();
 }
 
+//Rcon reload config command
 inline void RconReloadConfig(RCONClientConnection* rcon_connection, RCONPacket* rcon_packet, UWorld*)
 {
 	FString reply;
@@ -124,17 +166,20 @@ inline void RconReloadConfig(RCONClientConnection* rcon_connection, RCONPacket* 
 	rcon_connection->SendMessageW(rcon_packet->Id, 0, &reply);
 }
 
+//initialize commands
 inline void InitCommands()
 {
 	InitChatCommands();
+
 	ArkApi::GetCommands().AddConsoleCommand("DPP.Reload", &ConsoleReloadConfig);
 	ArkApi::GetCommands().AddRconCommand("DPP.Reload", &RconReloadConfig);
-	ArkApi::GetCommands().AddChatCommand("DPP.Reload", &ConsoleReloadConfig);
 }
 
+//remove commands
 inline void RemoveCommands()
 {
 	RemoveChatCommands();
+
 	ArkApi::GetCommands().RemoveConsoleCommand("DPP.Reload");
 	ArkApi::GetCommands().RemoveRconCommand("DPP.Reload");
 }
