@@ -14,6 +14,7 @@ namespace DinoPassiveProtection
 	bool RequiresPassiveFlee;
 	bool RequiresNoRider;
 	bool RequiresNoInventory;
+	bool RequireNoSaddle;
 	bool RequiresNotFollowing;
 	bool RequiresIgnoreWhistle;
 	bool RequiresNeutered;
@@ -35,12 +36,31 @@ namespace DinoPassiveProtection
 	FString DPPInvalidCommand;
 	FString NotADinoOrStructureMessage;
 
+	//Missing Protection hint messages
+	FString DinoNotPassiveMessage;
+	FString DinoNotPassiveFleeMessage;
+	FString DinoHasRiderMessage;
+	FString DinoHasInventoryeMessage;
+	FString DinoHasSaddleMessage;
+	FString DinoFollowingMessage;
+	FString DinoNotIgnoringWhistlesMessage;
+	FString DinoNotNeuteredMessage;
+	FString DinoBelowMinHealthMessage;
+	FString DinoNearEnemyStructureMessage;
+	FString DinoInTurretModeMessage;
+
+	//FString array for printing why protection fails
+	std::vector<FString> MissingProtectionHintMessages;
+
 	//Vectors for tracking dino blacklist and structure whitelist
 	std::vector<FString> DinoBlacklist;
 	std::vector<FString> StructureWhitelist;
 
 	//JSON vars
 	nlohmann::json config, TempConfig;
+
+	
+	
 
 	//Takes an Object and prints the blueprint path if it's a structure or dino
 	//Credit to Michidu: Structure Limit v1.1
@@ -53,11 +73,6 @@ namespace DinoPassiveProtection
 		{
 			FString path_name;
 			object->ClassField()->GetDefaultObject(true)->GetFullName(&path_name, nullptr);
-
-			if (DinoPassiveProtection::EnableConsoleDebugging)
-			{
-				Log::GetLog()->warn("Pre-Mod Blueprint Path: {}", path_name.ToString());
-			}
 
 			if (int find_index = 0; path_name.FindChar(' ', find_index))
 			{
@@ -78,11 +93,16 @@ namespace DinoPassiveProtection
 
 	//TODO: Needs ability to ignore environment damage like falling through the map and lava
 	//Checks the dinos protection status
-	bool CheckDinoProtection(APrimalDinoCharacter* dino)
+	int CheckDinoProtection(APrimalDinoCharacter* dino)
 	{
 		//_this != NULL
 		if (dino)
 		{
+			if (DinoPassiveProtection::EnableConsoleDebugging)
+			{
+				Log::GetLog()->warn("## Beginning of debug ##");
+				Log::GetLog()->warn("#####################################################################");
+			}
 			//Check dino to see if it blacklisted in the config
 			bool isBlacklisted = false;
 
@@ -96,6 +116,7 @@ namespace DinoPassiveProtection
 				{
 					Log::GetLog()->warn("Blacklist Path:   {}", x.ToString());
 					Log::GetLog()->warn("dinoGetBlueprint: {}", dinoGetBlueprint.ToString());
+
 				}
 
 				if (x.Compare(dinoGetBlueprint) == 0)
@@ -104,9 +125,16 @@ namespace DinoPassiveProtection
 
 					if (DinoPassiveProtection::EnableConsoleDebugging)
 					{
-						Log::GetLog()->warn("Blacklisted dino?: {}", isBlacklisted);
+						Log::GetLog()->warn("Blacklisted dino: {}", isBlacklisted);
+						Log::GetLog()->warn("-------------------------------------------------");
 					}
 					break;
+				}
+
+				if (DinoPassiveProtection::EnableConsoleDebugging)
+				{
+					Log::GetLog()->warn("Blacklisted dino: {}", isBlacklisted);
+					Log::GetLog()->warn("-------------------------------------------------");
 				}
 			}
 			
@@ -128,6 +156,7 @@ namespace DinoPassiveProtection
 					bool isPassiveFlee;
 					bool hasNoRider;
 					bool hasNoInventory;
+					bool hasNoSaddle;
 					bool isNotFollowing;
 					bool isIgnoringWhistles;
 					bool isNeutered;
@@ -164,34 +193,64 @@ namespace DinoPassiveProtection
 
 					//TODO: Add Check for saddles and costumes
 					//Checks inventory for any items
+					//preset to true in case no items found
+					hasNoInventory = true;
+
 					UPrimalInventoryComponent* inventory = dino->MyInventoryComponentField();
 
 					if (inventory != nullptr)
 					{
-						int item_count = 0;
 
-						// Count items
-						TArray<UPrimalItem*> items = inventory->InventoryItemsField();
-
-						for (UPrimalItem* item : items)
+						if (DinoPassiveProtection::RequiresNoInventory)
 						{
+							int item_count = 0;
 
-							if (item->ClassField() != nullptr)
+							// Count items
+							TArray<UPrimalItem*> items = inventory->InventoryItemsField();
+
+							for (UPrimalItem* item : items)
 							{
-								item_count += item->GetItemQuantity();
 
-								//if at least one item in inventory, set hasNoInventory to false and break
-								if (item_count >= 1)
+								if (item->ClassField() != nullptr)
 								{
-									hasNoInventory = false;
-									break;
+									item_count += item->GetItemQuantity();
+
+									//if at least one item in inventory, set hasNoInventory to false and break
+									if (item_count >= 1)
+									{
+										hasNoInventory = false;
+										FString itemName;
+										item->NameField().ToString(&itemName);
+										break;
+									}
 								}
 							}
 						}
-					}
-					else
-					{
-						hasNoInventory = true;
+
+						hasNoSaddle = true;
+
+						if (DinoPassiveProtection::RequireNoSaddle)
+						{
+							TArray<UPrimalItem*> equppedItems = inventory->EquippedItemsField();
+							for (UPrimalItem* item : equppedItems)
+							{
+								if (item->ClassField() != nullptr)
+								{
+									FString itemName;
+									item->NameField().ToString(&itemName);
+									if (itemName.Contains("Saddle"))
+									{
+										hasNoSaddle = false;
+									}
+									if (DinoPassiveProtection::EnableConsoleDebugging)
+									{
+										Log::GetLog()->warn("Equipped Item: {}", itemName.ToString());
+									}
+								}
+							}
+						}
+						
+
 					}
 
 					//check if dino is following something
@@ -259,10 +318,12 @@ namespace DinoPassiveProtection
 								//log line to check dino path
 								if (DinoPassiveProtection::EnableConsoleDebugging)
 								{
-									Log::GetLog()->warn("stuctPath: {}", stuctPath.ToString());
-									Log::GetLog()->warn("WhiteListed Path: {}", x.ToString());
+									Log::GetLog()->warn("=================================================================================");
+									Log::GetLog()->warn("stuctPath:            {}", stuctPath.ToString());
+									Log::GetLog()->warn("---------------------------------------------------------------------------------");
+									Log::GetLog()->warn("WhiteListed Path:     {}", x.ToString());
 									Log::GetLog()->warn("Foundations from dino {}", (FVector::Distance(dino->RootComponentField()->RelativeLocationField(), actor->RootComponentField()->RelativeLocationField())) / 300);
-									Log::GetLog()->warn("MinimumEnemyStructureDistanceInFoundations {}", DinoPassiveProtection::MinimumEnemyStructureDistanceInFoundations);
+									Log::GetLog()->warn("=================================================================================");
 								}
 
 								//If Whitelist BP path matches structure BP path
@@ -283,22 +344,19 @@ namespace DinoPassiveProtection
 					//Logging for Debugging
 					if (DinoPassiveProtection::EnableConsoleDebugging)
 					{
-						Log::GetLog()->warn("## Beginning of debug ##");
-						Log::GetLog()->warn("############################");
-						Log::GetLog()->warn("Dino name: {}", DinoName.ToString());
-						Log::GetLog()->warn("Dino is Passive: {}", isPassiveAggressive);
-						Log::GetLog()->warn("Dino is Passive flee: {}", isPassiveFlee);
-						Log::GetLog()->warn("Dino has No rider: {}", hasNoRider);
-						Log::GetLog()->warn("Dino has No inventory: {}", hasNoInventory);
-						Log::GetLog()->warn("Dino isn't Following a target: {}", isNotFollowing);
-						Log::GetLog()->warn("Dino is Ignoring whistle: {}", isIgnoringWhistles);
-						Log::GetLog()->warn("Dino is Neutered: {}", isNeutered);
-						Log::GetLog()->warn("Dino is Above min health: {}", isHealthAboveMin);
+						Log::GetLog()->warn("Dino name:                        {}", DinoName.ToString());
+						Log::GetLog()->warn("Dino is Passive:                  {}", isPassiveAggressive);
+						Log::GetLog()->warn("Dino is Passive flee:             {}", isPassiveFlee);
+						Log::GetLog()->warn("Dino has No rider:                {}", hasNoRider);
+						Log::GetLog()->warn("Dino has No inventory:            {}", hasNoInventory);
+						Log::GetLog()->warn("Dino has No saddle:               {}", hasNoSaddle);
+						Log::GetLog()->warn("Dino isn't Following a target:    {}", isNotFollowing);
+						Log::GetLog()->warn("Dino is Ignoring whistle:         {}", isIgnoringWhistles);
+						Log::GetLog()->warn("Dino is Neutered:                 {}", isNeutered);
+						Log::GetLog()->warn("Dino is Above min health:         {}", isHealthAboveMin);
 						Log::GetLog()->warn("Dino isn't Near enemy Structures: {}", isNotNearEnemyStructures);
-						Log::GetLog()->warn("Dino isn't in Turret mode: {}", isNotInTurretMode);
-						Log::GetLog()->warn("Dino is a Baby: {}", isBaby);
-						Log::GetLog()->warn("############################");
-						Log::GetLog()->warn("## End of debug ##");
+						Log::GetLog()->warn("Dino isn't in Turret mode:        {}", isNotInTurretMode);
+						Log::GetLog()->warn("Dino is a Baby:                   {}", isBaby);
 					}
 
 					#pragma endregion Comment out for release builds
@@ -310,6 +368,7 @@ namespace DinoPassiveProtection
 						DinoPassiveProtection::RequiresPassiveFlee,
 						DinoPassiveProtection::RequiresNoRider,
 						DinoPassiveProtection::RequiresNoInventory,
+						DinoPassiveProtection::RequireNoSaddle,
 						DinoPassiveProtection::RequiresNotFollowing,
 						DinoPassiveProtection::RequiresIgnoreWhistle,
 						DinoPassiveProtection::RequiresNeutered,
@@ -325,6 +384,7 @@ namespace DinoPassiveProtection
 						isPassiveFlee,
 						hasNoRider,
 						hasNoInventory,
+						hasNoSaddle,
 						isNotFollowing,
 						isIgnoringWhistles,
 						isNeutered,
@@ -341,13 +401,29 @@ namespace DinoPassiveProtection
 
 						if (configConditions[i] && !dinoActuals[i])
 						{
-							return false;
+							if (DinoPassiveProtection::EnableConsoleDebugging)
+							{
+								Log::GetLog()->warn("Dino {} is not Protected", DinoName.ToString());
+								Log::GetLog()->warn("Reason: {}", DinoPassiveProtection::MissingProtectionHintMessages[i].ToString());
+								Log::GetLog()->warn("#####################################################################");
+								Log::GetLog()->warn("## End of debug ##");
+							}
+							//dino not protected, returning index for missing protection hint
+							return i;
 						}
 					}
-					return true;
+					if (DinoPassiveProtection::EnableConsoleDebugging)
+					{
+						Log::GetLog()->warn("Dino {} is Protected", DinoName.ToString());
+						Log::GetLog()->warn("#####################################################################");
+						Log::GetLog()->warn("## End of debug ##");
+					}
+					// dinoe is protected
+					return -1;
 				}
 			}
 		}
-		return false;
+		//not a dino
+		return 999;
 	}
 }

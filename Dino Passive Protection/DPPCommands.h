@@ -20,20 +20,28 @@ inline void GetProtectionStatus(AShooterPlayerController* player)
 		//dino in same tribe
 		if (Dino->TargetingTeamField() == player->TargetingTeamField())
 		{
-			//check if protected
-			bool isProtected = DinoPassiveProtection::CheckDinoProtection(Dino);
+			//checks dinos protection
+			// isProtected >= 0 means not protected
+			// isProtected = -1 means protected
+			int isProtected = DinoPassiveProtection::CheckDinoProtection(Dino);
 
-			//is protected
-			if (isProtected)
+			//if dino is protected
+			if (isProtected == -1)
 			{
 				ArkApi::GetApiUtils().SendNotification(player, DinoPassiveProtection::MessageColor, DinoPassiveProtection::MessageTextSize, DinoPassiveProtection::MessageDisplayDelay, nullptr,
 					*DinoPassiveProtection::PassiveProtectedDinoMessage);
+			}
+			else if (isProtected == 999)
+			{
+				//won't likely happen???
 			}
 			//not protected
 			else
 			{
 				ArkApi::GetApiUtils().SendNotification(player, DinoPassiveProtection::MessageColor, DinoPassiveProtection::MessageTextSize, DinoPassiveProtection::MessageDisplayDelay, nullptr,
 					*DinoPassiveProtection::UnprotectedDinoMessage);
+				ArkApi::GetApiUtils().SendNotification(player, DinoPassiveProtection::MessageColor, DinoPassiveProtection::MessageTextSize, DinoPassiveProtection::MessageDisplayDelay, nullptr,
+					*DinoPassiveProtection::MissingProtectionHintMessages[isProtected]);
 			}
 		}
 		//dino not in same tribe
@@ -114,7 +122,6 @@ inline void ChatCommand(AShooterPlayerController* player, FString* message, int 
 inline void InitChatCommands()
 {
 	FString cmd1 = DinoPassiveProtection::DPPChatCommandPrefix;
-	cmd1 = cmd1.Append("dpp");
 	ArkApi::GetCommands().AddChatCommand(cmd1, &ChatCommand);
 }
 

@@ -31,10 +31,12 @@ float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Da
 			}
 
 			//checks dinos protection
-			bool isProtected = DinoPassiveProtection::CheckDinoProtection(_this);
+			// isProtected >= 0 means not protected
+			// isProtected = -1 means protected
+			int isProtected = DinoPassiveProtection::CheckDinoProtection(_this);
 
 			//if dino is protected
-			if (isProtected)
+			if (isProtected == -1)
 			{
 				//sends notification if event instagator is another player
 				if (EventInstigator && !EventInstigator->IsLocalController() && EventInstigator->IsA(AShooterPlayerController::GetPrivateStaticClass()))
