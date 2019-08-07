@@ -43,6 +43,7 @@
     "DinoBelowMinHealthMessage": "Dino is not above minimum health.",
     "DinoNearEnemyStructureMessage": "Dino is near enemy structures.",
     "DinoInTurretModeMessage": "Dino is in Turret mode.",
+    "DinoIsBlacklistedMessage": "Dino is a blacklisted dino.",
 
     "DinoBlacklist": [
       "Blueprint'/Game/PrimalEarth/Dinos/Giganotosaurus/Gigant_Character_BP.Gigant_Character_BP'",

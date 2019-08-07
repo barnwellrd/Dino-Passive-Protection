@@ -60,6 +60,8 @@ inline void InitConfig()
 	DinoPassiveProtection::DinoBelowMinHealthMessage = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["DinoBelowMinHealthMessage"]).c_str());
 	DinoPassiveProtection::DinoNearEnemyStructureMessage = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["DinoNearEnemyStructureMessage"]).c_str());
 	DinoPassiveProtection::DinoInTurretModeMessage = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["DinoInTurretModeMessage"]).c_str());
+	DinoPassiveProtection::DinoIsBlacklistedMessage = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["DinoIsBlacklistedMessage"]).c_str());
+
 
 
 	DinoPassiveProtection::MissingProtectionHintMessages =
@@ -74,7 +76,8 @@ inline void InitConfig()
 		DinoPassiveProtection::DinoNotNeuteredMessage,
 		DinoPassiveProtection::DinoBelowMinHealthMessage,
 		DinoPassiveProtection::DinoNearEnemyStructureMessage,
-		DinoPassiveProtection::DinoInTurretModeMessage
+		DinoPassiveProtection::DinoInTurretModeMessage,
+		DinoPassiveProtection::DinoIsBlacklistedMessage
 	};
 
 	//Clear vector so that config reload is clean
