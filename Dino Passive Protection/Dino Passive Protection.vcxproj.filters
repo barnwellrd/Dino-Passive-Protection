@@ -27,6 +27,9 @@
     <ClInclude Include="DPPCommands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="avl_impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="config.json">

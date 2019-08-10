@@ -3,6 +3,7 @@
 #include <Logger/Logger.h>
 #include <API/UE/Containers/FString.h>
 #include "json.hpp"
+#include "avl_impl.h"
 
 namespace DinoPassiveProtection
 {
@@ -57,8 +58,13 @@ namespace DinoPassiveProtection
 	std::vector<FString> MissingProtectionHintMessages;
 
 	//Vectors for tracking dino blacklist and structure whitelist
-	std::vector<FString> DinoBlacklist;
-	std::vector<FString> StructureWhitelist;
+	//std::vector<FString> DinoBlacklist;
+	//std::vector<FString> StructureWhitelist;
+
+
+	//Testing AVL tree
+	set<FString> DinoBlacklistTree;
+	set<FString> StructureWhitelistTree;
 
 	//JSON vars
 	nlohmann::json config, TempConfig;
@@ -127,7 +133,8 @@ namespace DinoPassiveProtection
 				bool isBlacklisted = false;
 
 				//Check to see if name is needed
-				if (DinoPassiveProtection::DinoBlacklist.size() > 0 || DinoPassiveProtection::EnableConsoleDebugging)
+				//if (DinoPassiveProtection::DinoBlacklistTree.size() > 0 || DinoPassiveProtection::EnableConsoleDebugging)
+				if (DinoPassiveProtection::DinoBlacklistTree.length() > 0 || DinoPassiveProtection::EnableConsoleDebugging)
 				{
 					//get Dino Name
 					dino->GetDinoDescriptiveName(&DinoName);
@@ -280,7 +287,9 @@ namespace DinoPassiveProtection
 
 				//OPTIMIZE?
 				//Check if Structure check is needed
-				if ((DinoPassiveProtection::RequiresNoNearbyEnemyStructures && DinoPassiveProtection::StructureWhitelist.size() > 0) || DinoPassiveProtection::EnableConsoleDebugging)
+				//if ((DinoPassiveProtection::RequiresNoNearbyEnemyStructures && DinoPassiveProtection::StructureWhitelist.size() > 0) || DinoPassiveProtection::EnableConsoleDebugging)
+				if ((DinoPassiveProtection::RequiresNoNearbyEnemyStructures && DinoPassiveProtection::StructureWhitelistTree.length() > 0) || DinoPassiveProtection::EnableConsoleDebugging)
+
 				{
 
 					bool  previousProtectionRequirementsMet = true;
@@ -353,29 +362,31 @@ namespace DinoPassiveProtection
 
 							if (structure->TargetingTeamField() != dino->TargetingTeamField())
 							{
-								for (FString x : DinoPassiveProtection::StructureWhitelist)
-								{
-									FString stuctPath;
-									stuctPath = GetBlueprint(structure);
+								FString stuctPath;
+								stuctPath = GetBlueprint(structure);
+								//for (FString x : DinoPassiveProtection::StructureWhitelist)
+								//{
+									//FString stuctPath;
+									//stuctPath = GetBlueprint(structure);
 
 									//log line to check dino path
-									if (DinoPassiveProtection::EnableConsoleDebugging)
-									{
-										Log::GetLog()->warn("=================================================================================");
-										Log::GetLog()->warn("stuctPath:            {}", stuctPath.ToString());
-										Log::GetLog()->warn("---------------------------------------------------------------------------------");
-										Log::GetLog()->warn("WhiteListed Path:     {}", x.ToString());
-										Log::GetLog()->warn("Foundations from dino {}", (FVector::Distance(dino->RootComponentField()->RelativeLocationField(), actor->RootComponentField()->RelativeLocationField())) / 300);
-										Log::GetLog()->warn("=================================================================================");
-									}
+									//if (DinoPassiveProtection::EnableConsoleDebugging)
+									//{
+									//	Log::GetLog()->warn("=================================================================================");
+									//	Log::GetLog()->warn("stuctPath:            {}", stuctPath.ToString());
+									//	Log::GetLog()->warn("---------------------------------------------------------------------------------");
+									//	Log::GetLog()->warn("WhiteListed Path:     {}", x.ToString());
+									//	Log::GetLog()->warn("Foundations from dino {}", (FVector::Distance(dino->RootComponentField()->RelativeLocationField(), actor->RootComponentField()->RelativeLocationField())) / 300);
+									//	Log::GetLog()->warn("=================================================================================");
+									//}
 
 									//If Whitelist BP path matches structure BP path
-									if (x.Compare(stuctPath) == 0)
+									if (DinoPassiveProtection::StructureWhitelistTree.exists(stuctPath))
 									{
 										isNotNearEnemyStructures = false;
-										break;
+										//break;
 									}
-								}
+								//}
 							}
 						}
 					}
@@ -383,7 +394,7 @@ namespace DinoPassiveProtection
 				
 				//OPTIMIZE?
 				//Check if dino Blacklist check is needed
-				if (DinoPassiveProtection::DinoBlacklist.size() > 0 || DinoPassiveProtection::EnableConsoleDebugging)
+				if (DinoPassiveProtection::DinoBlacklistTree.length() > 0 || DinoPassiveProtection::EnableConsoleDebugging)
 				{
 					bool  previousProtectionRequirementsMet = true;
 
@@ -439,20 +450,22 @@ namespace DinoPassiveProtection
 					if (previousProtectionRequirementsMet)
 					{
 						//Check dino to see if it blacklisted in the config
-						for (FString x : DinoPassiveProtection::DinoBlacklist)
-						{
+						//for (FString x : DinoPassiveProtection::DinoBlacklist)
+						//{
 							FString dinoGetBlueprint;
 							dinoGetBlueprint = GetBlueprint(dino);
 
 							//log line to check dino path
-							if (DinoPassiveProtection::EnableConsoleDebugging)
-							{
-								Log::GetLog()->warn("Blacklist Path:   {}", x.ToString());
-								Log::GetLog()->warn("dinoGetBlueprint: {}", dinoGetBlueprint.ToString());
+						//	if (DinoPassiveProtection::EnableConsoleDebugging)
+						//	{
+						//		Log::GetLog()->warn("Blacklist Path:   {}", x.ToString());
+						//		Log::GetLog()->warn("dinoGetBlueprint: {}", dinoGetBlueprint.ToString());
+//
+						//	}
 
-							}
+							//if (x.Compare(dinoGetBlueprint) == 0)
 
-							if (x.Compare(dinoGetBlueprint) == 0)
+							if (DinoPassiveProtection::StructureWhitelistTree.exists(dinoGetBlueprint))
 							{
 								isBlacklisted = true;
 
@@ -461,7 +474,7 @@ namespace DinoPassiveProtection
 									Log::GetLog()->warn("Blacklisted dino: {}", isBlacklisted);
 									Log::GetLog()->warn("-------------------------------------------------");
 								}
-								break;
+								//break;
 							}
 
 							if (DinoPassiveProtection::EnableConsoleDebugging)
@@ -469,7 +482,7 @@ namespace DinoPassiveProtection
 								Log::GetLog()->warn("Blacklisted dino: {}", isBlacklisted);
 								Log::GetLog()->warn("-------------------------------------------------");
 							}
-						}
+						//}
 					}
 				}
 
@@ -507,7 +520,7 @@ namespace DinoPassiveProtection
 					(DinoPassiveProtection::MinimumHealthPercentage > 0),
 					DinoPassiveProtection::RequiresNoNearbyEnemyStructures,
 					DinoPassiveProtection::RequiresNotTurretMode,
-					(DinoPassiveProtection::DinoBlacklist.size() > 0)
+					(DinoPassiveProtection::DinoBlacklistTree.length() > 0)
 				};
 
 				//build array of aquired dino parameters for comparing

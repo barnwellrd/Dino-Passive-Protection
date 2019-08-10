@@ -81,24 +81,31 @@ inline void InitConfig()
 	};
 
 	//Clear vector so that config reload is clean
-	DinoPassiveProtection::DinoBlacklist.clear();
+	//DinoPassiveProtection::DinoBlacklist.clear();
+
+	DinoPassiveProtection::DinoBlacklistTree.erase();
+
 
 	//Load Blacklisted dinos from config
 	DinoPassiveProtection::TempConfig = DinoPassiveProtection::config["General"]["DinoBlacklist"];
 
 	for (nlohmann::json x : DinoPassiveProtection::TempConfig)
 	{
-		DinoPassiveProtection::DinoBlacklist.push_back(FString(ArkApi::Tools::Utf8Decode(x).c_str()));
+		//DinoPassiveProtection::DinoBlacklist.push_back(FString(ArkApi::Tools::Utf8Decode(x).c_str()));
+		DinoPassiveProtection::DinoBlacklistTree.insert(FString(ArkApi::Tools::Utf8Decode(x).c_str()));
 	}
 
 	//Clear vector so that config reload is clean
-	DinoPassiveProtection::StructureWhitelist.clear();
+	//DinoPassiveProtection::StructureWhitelist.clear();
+	DinoPassiveProtection::StructureWhitelistTree.erase();
 
 	//Load Whitelisted structures from config
 	DinoPassiveProtection::TempConfig = DinoPassiveProtection::config["General"]["StructureWhitelist"];
 
 	for (nlohmann::json x : DinoPassiveProtection::TempConfig)
 	{
-		DinoPassiveProtection::StructureWhitelist.push_back(FString(ArkApi::Tools::Utf8Decode(x).c_str()));
+		//DinoPassiveProtection::StructureWhitelist.push_back(FString(ArkApi::Tools::Utf8Decode(x).c_str()));
+		DinoPassiveProtection::StructureWhitelistTree.insert(FString(ArkApi::Tools::Utf8Decode(x).c_str()));
+
 	}
 }
