@@ -62,8 +62,6 @@ inline void InitConfig()
 	DinoPassiveProtection::DinoInTurretModeMessage = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["DinoInTurretModeMessage"]).c_str());
 	DinoPassiveProtection::DinoIsBlacklistedMessage = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["DinoIsBlacklistedMessage"]).c_str());
 
-
-
 	DinoPassiveProtection::MissingProtectionHintMessages =
 	{
 		DinoPassiveProtection::DinoNotPassiveMessage,
@@ -88,7 +86,7 @@ inline void InitConfig()
 
 	for (nlohmann::json x : DinoPassiveProtection::TempConfig)
 	{
-		DinoPassiveProtection::DinoBlacklist.push_back(FString(ArkApi::Tools::Utf8Decode(x).c_str()));
+		DinoPassiveProtection::DinoBlacklist.push_back(FString(ArkApi::Tools::Utf8Decode(x).c_str()).ToString());
 	}
 
 	//Clear vector so that config reload is clean
@@ -99,6 +97,6 @@ inline void InitConfig()
 
 	for (nlohmann::json x : DinoPassiveProtection::TempConfig)
 	{
-		DinoPassiveProtection::StructureWhitelist.push_back(FString(ArkApi::Tools::Utf8Decode(x).c_str()));
+		DinoPassiveProtection::StructureWhitelist.push_back(FString(ArkApi::Tools::Utf8Decode(x).c_str()).ToString());
 	}
 }

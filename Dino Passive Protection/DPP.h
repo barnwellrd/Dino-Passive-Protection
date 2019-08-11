@@ -57,8 +57,8 @@ namespace DinoPassiveProtection
 	std::vector<FString> MissingProtectionHintMessages;
 
 	//Vectors for tracking dino blacklist and structure whitelist
-	std::vector<FString> DinoBlacklist;
-	std::vector<FString> StructureWhitelist;
+	std::vector<std::string> DinoBlacklist;
+	std::vector<std::string> StructureWhitelist;
 
 	//JSON vars
 	nlohmann::json config, TempConfig;
@@ -165,7 +165,8 @@ namespace DinoPassiveProtection
 				}
 				
 				//check if inventory check is needed
-				if (DinoPassiveProtection::RequiresNoInventory || DinoPassiveProtection::EnableConsoleDebugging) {
+				if (DinoPassiveProtection::RequiresNoInventory || DinoPassiveProtection::EnableConsoleDebugging) 
+				{
 					//Checks inventory for any items
 					UPrimalInventoryComponent* inventory = dino->MyInventoryComponentField();
 
@@ -282,7 +283,6 @@ namespace DinoPassiveProtection
 				//Check if Structure check is needed
 				if ((DinoPassiveProtection::RequiresNoNearbyEnemyStructures && DinoPassiveProtection::StructureWhitelist.size() > 0) || DinoPassiveProtection::EnableConsoleDebugging)
 				{
-
 					bool  previousProtectionRequirementsMet = true;
 
 					//Structure Whitelist check is very lag inducing. 
@@ -334,7 +334,7 @@ namespace DinoPassiveProtection
 					}
 
 					//dino eligible for blacklist check
-					if (previousProtectionRequirementsMet)
+					if (previousProtectionRequirementsMet || DinoPassiveProtection::EnableConsoleDebugging)
 					{
 						//TODO: Potentially force a check to be required near owned structures
 						//check for enemy structures nearby	
@@ -353,34 +353,39 @@ namespace DinoPassiveProtection
 
 							if (structure->TargetingTeamField() != dino->TargetingTeamField())
 							{
-								for (FString x : DinoPassiveProtection::StructureWhitelist)
-								{
-									FString stuctPath;
-									stuctPath = GetBlueprint(structure);
+								FString stuctPath;
+								stuctPath = GetBlueprint(structure);
 
-									//log line to check dino path
+								//log line to check structure path
+								if (DinoPassiveProtection::EnableConsoleDebugging)
+								{
+									Log::GetLog()->warn("=================================================================================");
+									Log::GetLog()->warn("stuctPath:            {}", stuctPath.ToString());
+									Log::GetLog()->warn("Foundations from dino {}", (FVector::Distance(dino->RootComponentField()->RelativeLocationField(), actor->RootComponentField()->RelativeLocationField())) / 300);
+									Log::GetLog()->warn("=================================================================================");
+								}
+
+								//If Whitelist BP path matches structure BP path
+								if (std::count(DinoPassiveProtection::StructureWhitelist.begin(), DinoPassiveProtection::StructureWhitelist.end(), stuctPath.ToString()))
+								{
+									isNotNearEnemyStructures = false;
+
+									//log line to confirm enemy structure found
 									if (DinoPassiveProtection::EnableConsoleDebugging)
 									{
 										Log::GetLog()->warn("=================================================================================");
+										Log::GetLog()->warn("Whitelisted structure found:");
 										Log::GetLog()->warn("stuctPath:            {}", stuctPath.ToString());
-										Log::GetLog()->warn("---------------------------------------------------------------------------------");
-										Log::GetLog()->warn("WhiteListed Path:     {}", x.ToString());
 										Log::GetLog()->warn("Foundations from dino {}", (FVector::Distance(dino->RootComponentField()->RelativeLocationField(), actor->RootComponentField()->RelativeLocationField())) / 300);
 										Log::GetLog()->warn("=================================================================================");
 									}
-
-									//If Whitelist BP path matches structure BP path
-									if (x.Compare(stuctPath) == 0)
-									{
-										isNotNearEnemyStructures = false;
-										break;
-									}
+									break;
 								}
 							}
 						}
 					}
 				}
-				
+
 				//OPTIMIZE?
 				//Check if dino Blacklist check is needed
 				if (DinoPassiveProtection::DinoBlacklist.size() > 0 || DinoPassiveProtection::EnableConsoleDebugging)
@@ -439,36 +444,21 @@ namespace DinoPassiveProtection
 					if (previousProtectionRequirementsMet)
 					{
 						//Check dino to see if it blacklisted in the config
-						for (FString x : DinoPassiveProtection::DinoBlacklist)
+
+						FString dinoGetBlueprint;
+						dinoGetBlueprint = GetBlueprint(dino);
+
+						if (std::count(DinoPassiveProtection::DinoBlacklist.begin(), DinoPassiveProtection::DinoBlacklist.end(), dinoGetBlueprint.ToString()))
 						{
-							FString dinoGetBlueprint;
-							dinoGetBlueprint = GetBlueprint(dino);
+							isBlacklisted = true;
+						}
 
-							//log line to check dino path
-							if (DinoPassiveProtection::EnableConsoleDebugging)
-							{
-								Log::GetLog()->warn("Blacklist Path:   {}", x.ToString());
-								Log::GetLog()->warn("dinoGetBlueprint: {}", dinoGetBlueprint.ToString());
-
-							}
-
-							if (x.Compare(dinoGetBlueprint) == 0)
-							{
-								isBlacklisted = true;
-
-								if (DinoPassiveProtection::EnableConsoleDebugging)
-								{
-									Log::GetLog()->warn("Blacklisted dino: {}", isBlacklisted);
-									Log::GetLog()->warn("-------------------------------------------------");
-								}
-								break;
-							}
-
-							if (DinoPassiveProtection::EnableConsoleDebugging)
-							{
-								Log::GetLog()->warn("Blacklisted dino: {}", isBlacklisted);
-								Log::GetLog()->warn("-------------------------------------------------");
-							}
+						//log line to check dino path
+						if (DinoPassiveProtection::EnableConsoleDebugging)
+						{
+							Log::GetLog()->warn("dinoGetBlueprint: {}", dinoGetBlueprint.ToString());
+							Log::GetLog()->warn("Blacklisted dino: {}", isBlacklisted);
+							Log::GetLog()->warn("-------------------------------------------------");
 						}
 					}
 				}
@@ -524,7 +514,7 @@ namespace DinoPassiveProtection
 					isHealthAboveMin,
 					isNotNearEnemyStructures,
 					isNotInTurretMode,
-					isBlacklisted
+					!isBlacklisted
 				};
 
 				//Compare config values to dino values to decide if dino is protectected or not
