@@ -162,7 +162,6 @@
     <ClCompile Include="DPP.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="avl_impl.h" />
     <ClInclude Include="DPP.h" />
     <ClInclude Include="DPPCommands.h" />
     <ClInclude Include="DPPConfig.h" />

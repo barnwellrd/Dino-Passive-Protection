@@ -1,7 +1,7 @@
 {
   "FullName": "Dino Passive Protection Plugin",
   "Description": "Gives passive dinos protection against enemy players and wild dinos.",
-  "Version": 1.1,
+  "Version": 1.2,
   "MinApiVersion": 3.1,
   "ResourceId": 68
 }
