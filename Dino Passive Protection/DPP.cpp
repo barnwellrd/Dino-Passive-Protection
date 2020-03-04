@@ -1,4 +1,5 @@
 #include <API/ARK/Ark.h>
+#include <Timer.h>
 #include "DPP.h"
 #include "DPPConfig.h"
 #include "DPPCommands.h"
@@ -6,6 +7,26 @@
 #pragma comment(lib, "ArkApi.lib")
 
 DECLARE_HOOK(APrimalDinoCharacter_TakeDamage, float, APrimalDinoCharacter*, float, FDamageEvent*, AController*, AActor*);
+DECLARE_HOOK(APrimalDinoCharacter_ClearRider, void, APrimalDinoCharacter*, bool, bool, bool, int, bool);
+
+void Hook_APrimalDinoCharacter_ClearRider(APrimalDinoCharacter* _this, bool FromRider, bool bCancelForceLand, bool SpawnDinoDefaultController, int OverrideUnboardDirection, bool bForceEvenIfBuffPreventsClear)
+{
+	if (DinoPassiveProtection::EnableDismountTimer) {
+		if (_this) {
+			if (_this->TargetingTeamField() > 10000) {
+				if (DinoPassiveProtection::EnableConsoleDebugging) {
+					FString name;
+					_this->NameField().ToString(&name);
+					Log::GetLog()->info("Dismounted Dino Name: {}", name.ToString());
+				}
+				DinoPassiveProtection::AddDismountedDino(_this->UniqueGuidIdField());
+				API::Timer::Get().DelayExecute(&DinoPassiveProtection::RemoveDismountedDino, DinoPassiveProtection::DismountTimerInSeconds, _this->UniqueGuidIdField());
+			}
+		}
+	}
+	
+	APrimalDinoCharacter_ClearRider_original(_this, FromRider, bCancelForceLand, SpawnDinoDefaultController, OverrideUnboardDirection, bForceEvenIfBuffPreventsClear);
+}
 
 float Hook_APrimalDinoCharacter_TakeDamage(APrimalDinoCharacter* _this, float Damage, FDamageEvent* DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {	
@@ -74,12 +95,15 @@ void Load()
 	InitCommands();
 
 	ArkApi::GetHooks().SetHook("APrimalDinoCharacter.TakeDamage", &Hook_APrimalDinoCharacter_TakeDamage, &APrimalDinoCharacter_TakeDamage_original);
+	ArkApi::GetHooks().SetHook("APrimalDinoCharacter.ClearRider", &Hook_APrimalDinoCharacter_ClearRider, &APrimalDinoCharacter_ClearRider_original);
+
 }
 
 void Unload()
 {
 	RemoveCommands();
 	ArkApi::GetHooks().DisableHook("APrimalDinoCharacter.TakeDamage", &Hook_APrimalDinoCharacter_TakeDamage);
+	ArkApi::GetHooks().DisableHook("APrimalDinoCharacter.ClearRider", &Hook_APrimalDinoCharacter_ClearRider);
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
