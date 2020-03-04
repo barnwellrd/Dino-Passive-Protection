@@ -32,6 +32,8 @@ inline void InitConfig()
 	DinoPassiveProtection::MinimumEnemyStructureDistanceInFoundations = DinoPassiveProtection::config["General"]["MinimumEnemyStructureDistanceInFoundations"];
 	DinoPassiveProtection::RequiresNotTurretMode = DinoPassiveProtection::config["General"]["RequiresNotTurretMode"];
 	DinoPassiveProtection::ProtectBabyDino = DinoPassiveProtection::config["General"]["ProtectBabyDino"];
+	DinoPassiveProtection::EnableDismountTimer = DinoPassiveProtection::config["General"]["EnableDismountTimer"];
+	DinoPassiveProtection::DismountTimerInSeconds = DinoPassiveProtection::config["General"]["DismountTimerInSeconds"];
 
 	//Get Message display settings
 	DinoPassiveProtection::MessageTextSize = DinoPassiveProtection::config["General"]["MessageTextSize"];
@@ -61,6 +63,7 @@ inline void InitConfig()
 	DinoPassiveProtection::DinoNearEnemyStructureMessage = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["DinoNearEnemyStructureMessage"]).c_str());
 	DinoPassiveProtection::DinoInTurretModeMessage = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["DinoInTurretModeMessage"]).c_str());
 	DinoPassiveProtection::DinoIsBlacklistedMessage = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["DinoIsBlacklistedMessage"]).c_str());
+	DinoPassiveProtection::DinoRecentlyDismountedMessage = FString(ArkApi::Tools::Utf8Decode(DinoPassiveProtection::config["General"]["DinoRecentlyDismountedMessage"]).c_str());
 
 	DinoPassiveProtection::MissingProtectionHintMessages =
 	{
@@ -75,11 +78,15 @@ inline void InitConfig()
 		DinoPassiveProtection::DinoBelowMinHealthMessage,
 		DinoPassiveProtection::DinoNearEnemyStructureMessage,
 		DinoPassiveProtection::DinoInTurretModeMessage,
-		DinoPassiveProtection::DinoIsBlacklistedMessage
+		DinoPassiveProtection::DinoIsBlacklistedMessage,
+		DinoPassiveProtection::DinoRecentlyDismountedMessage
 	};
 
 	//Clear vector so that config reload is clean
 	DinoPassiveProtection::DinoBlacklist.clear();
+	DinoPassiveProtection::StructureWhitelist.clear();
+	DinoPassiveProtection::DismountedDinos.clear();
+	DinoPassiveProtection::InventoryItemWhitelist.clear();
 
 	//Load Blacklisted dinos from config
 	DinoPassiveProtection::TempConfig = DinoPassiveProtection::config["General"]["DinoBlacklist"];
@@ -89,14 +96,20 @@ inline void InitConfig()
 		DinoPassiveProtection::DinoBlacklist.push_back(FString(ArkApi::Tools::Utf8Decode(x).c_str()).ToString());
 	}
 
-	//Clear vector so that config reload is clean
-	DinoPassiveProtection::StructureWhitelist.clear();
-
 	//Load Whitelisted structures from config
 	DinoPassiveProtection::TempConfig = DinoPassiveProtection::config["General"]["StructureWhitelist"];
 
 	for (nlohmann::json x : DinoPassiveProtection::TempConfig)
 	{
 		DinoPassiveProtection::StructureWhitelist.push_back(FString(ArkApi::Tools::Utf8Decode(x).c_str()).ToString());
+	}	
+
+
+	//Load Whitelisted items from config
+	DinoPassiveProtection::TempConfig = DinoPassiveProtection::config["General"]["InventoryItemWhitelist"];
+
+	for (nlohmann::json x : DinoPassiveProtection::TempConfig)
+	{
+		DinoPassiveProtection::InventoryItemWhitelist.push_back(FString(ArkApi::Tools::Utf8Decode(x).c_str()).ToString());
 	}
 }

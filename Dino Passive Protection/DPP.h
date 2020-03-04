@@ -26,6 +26,8 @@ namespace DinoPassiveProtection
 	float MinimumEnemyStructureDistanceInFoundations;
 	bool RequiresNotTurretMode;
 	bool ProtectBabyDino;
+	bool EnableDismountTimer;
+	int DismountTimerInSeconds;
 	
 	//Message settings from config
 	float MessageTextSize;
@@ -52,6 +54,7 @@ namespace DinoPassiveProtection
 	FString DinoNearEnemyStructureMessage;
 	FString DinoInTurretModeMessage;
 	FString DinoIsBlacklistedMessage;
+	FString DinoRecentlyDismountedMessage;
 
 	//FString array for printing why protection fails
 	std::vector<FString> MissingProtectionHintMessages;
@@ -59,11 +62,99 @@ namespace DinoPassiveProtection
 	//Vectors for tracking dino blacklist and structure whitelist
 	std::vector<std::string> DinoBlacklist;
 	std::vector<std::string> StructureWhitelist;
+	std::vector<std::string> InventoryItemWhitelist;
 
-	//JSON vars
+
+	// Vectors for tracking recently unmounted dinos
+	struct DismountedDino {
+		DismountedDino(std::string dino_id, std::chrono::time_point<std::chrono::system_clock> dismount_time)
+			:
+			dino_id(dino_id), dismount_time(dismount_time) {}
+		std::string dino_id;
+		std::chrono::time_point<std::chrono::system_clock> dismount_time;
+	};
+
+	std::vector<std::shared_ptr<DismountedDino>> DismountedDinos;
+
+	// JSON vars
 	nlohmann::json config, TempConfig;
 
 	#pragma endregion Variables
+
+	// convert FGuid to string
+	std::string fguidToString(FGuid guid) {
+		return std::to_string(guid.A) + std::to_string(guid.B) + std::to_string(guid.C) + std::to_string(guid.D);
+	}
+
+	// Adds dismounted dinos to the list when dismounted
+	void AddDismountedDino(FGuid dinoid) {
+
+		std::string dino_id = fguidToString(dinoid);
+
+		std::chrono::time_point<std::chrono::system_clock> dismount_time = std::chrono::system_clock::now();
+
+		// if not found in recently dismounted vector
+		if (std::count_if(DismountedDinos.begin(), DismountedDinos.end(), 
+			[dino_id](const std::shared_ptr<DismountedDino> data) {
+				return data->dino_id == dino_id;
+			}) < 1) {
+
+			DismountedDinos.push_back(std::make_shared<DismountedDino>(dino_id, dismount_time));
+
+		} // already in vector, update dismount time
+		else {
+			for (const auto& dino : DismountedDinos) {
+				if (dino->dino_id == dino_id) {
+					dino->dismount_time = dismount_time;
+					break;
+				}
+			}
+		}
+	}
+
+	void RemoveDismountedDino(FGuid dinoid) {
+
+		std::string dino_id = fguidToString(dinoid);
+
+		if (EnableConsoleDebugging) {
+			Log::GetLog()->info("Dismount timer triggered for: {}", dino_id);
+		}
+
+		std::chrono::time_point<std::chrono::system_clock> dismount_time = std::chrono::system_clock::now();
+
+		// if found in recently dismounted vector
+		if (std::count_if(DismountedDinos.begin(), DismountedDinos.end(),
+			[dino_id](const std::shared_ptr<DismountedDino> data) {
+				return data->dino_id == dino_id;
+			}) > 0) {
+			const auto iter = std::find_if(
+				DismountedDinos.begin(), DismountedDinos.end(),
+				[dino_id](const std::shared_ptr<DismountedDino> data) {
+					if (data->dino_id == dino_id) {
+
+						auto dismountTimerInSeconds = std::chrono::seconds(DismountTimerInSeconds);
+						auto now = std::chrono::system_clock::now();
+						auto expireTime = now - dismountTimerInSeconds;
+
+						auto diff = std::chrono::duration_cast<std::chrono::seconds>(data->dismount_time - expireTime);
+
+						if (diff.count() <= 0) {
+							return true;
+						}
+					}
+				});
+
+			if (iter != DismountedDinos.end()) {
+				DismountedDinos.erase(std::remove(DismountedDinos.begin(),
+					DismountedDinos.end(), *iter), DismountedDinos.end());
+			}
+		}
+		if (EnableConsoleDebugging) {
+			for each (std::shared_ptr<DismountedDino> dino in DismountedDinos) {
+				Log::GetLog()->info("Dino FGuid: {}", dino->dino_id);
+			}
+		}
+	}
 
 	//Takes an Object and prints the blueprint path if it's a structure or dino
 	//Credit to Michidu: Structure Limit v1.1
@@ -125,6 +216,7 @@ namespace DinoPassiveProtection
 				bool isNotInTurretMode = false;
 				bool isBaby = false;
 				bool isBlacklisted = false;
+				bool isNotOnDismountCD = true;
 
 				//Check to see if name is needed
 				if (DinoPassiveProtection::DinoBlacklist.size() > 0 || DinoPassiveProtection::EnableConsoleDebugging)
@@ -165,7 +257,7 @@ namespace DinoPassiveProtection
 				}
 				
 				//check if inventory check is needed
-				if (DinoPassiveProtection::RequiresNoInventory || DinoPassiveProtection::EnableConsoleDebugging) 
+				if (DinoPassiveProtection::RequiresNoInventory || DinoPassiveProtection::EnableConsoleDebugging)
 				{
 					//Checks inventory for any items
 					UPrimalInventoryComponent* inventory = dino->MyInventoryComponentField();
@@ -181,13 +273,31 @@ namespace DinoPassiveProtection
 						{
 							if (item->ClassField() != nullptr)
 							{
-								item_count += item->GetItemQuantity();
+								item_count = item->GetItemQuantity();
 
-								//if at least one item in inventory, set hasNoInventory to false and break
-								if (item_count >= 1)
+								if (DinoPassiveProtection::EnableConsoleDebugging) {
+									FString item_name;
+									item->NameField().ToString(&item_name);
+									item->bIsBlueprint()();
+									Log::GetLog()->info("item #{}: {}; Is Blueprint: {}", item_count, item_name.ToString(), item->bIsBlueprint()());
+									Log::GetLog()->info("Get CraftingPercent: {}", item->ItemRatingField());
+								}
+
+								// if at least one item in inventory, set hasNoInventory to false and break
+								// Defualt crafting bps have a rating of 0
+								if (!item->bIsBlueprint()() || (item->bIsBlueprint()() && item->ItemRatingField() != 0))
 								{
-									hasNoInventory = false;
-									break;
+									FString item_name;
+									item->NameField().ToString(&item_name);
+									std::string nameAsString = item_name.ToString();
+									if (std::count_if(DinoPassiveProtection::InventoryItemWhitelist.begin(), DinoPassiveProtection::InventoryItemWhitelist.end(), 
+											[item_name](const std::string data) {
+												return item_name.Contains(FString(data.c_str()));
+											}) < 1) {
+										hasNoInventory = false;
+										break;
+									}
+									
 								}
 							}
 						}
@@ -279,6 +389,20 @@ namespace DinoPassiveProtection
 					isNotInTurretMode = !(dino->bIsInTurretMode()());
 				}
 
+				//check if dino recently dismounted check is needed
+				if (DinoPassiveProtection::EnableDismountTimer || DinoPassiveProtection::EnableConsoleDebugging)
+				{
+					std::string dino_id = fguidToString(dino->UniqueGuidIdField());
+
+					// if found in recently dismounted vector
+					if (std::count_if(DismountedDinos.begin(), DismountedDinos.end(), 
+							[dino_id](const std::shared_ptr<DismountedDino> data) {
+								return data->dino_id == dino_id;
+							}) > 0) {
+						isNotOnDismountCD = false;
+					}
+				}
+
 				//OPTIMIZE?
 				//Check if Structure check is needed
 				if ((DinoPassiveProtection::RequiresNoNearbyEnemyStructures && DinoPassiveProtection::StructureWhitelist.size() > 0) || DinoPassiveProtection::EnableConsoleDebugging)
@@ -301,7 +425,8 @@ namespace DinoPassiveProtection
 						DinoPassiveProtection::RequiresIgnoreWhistle,
 						DinoPassiveProtection::RequiresNeutered,
 						(DinoPassiveProtection::MinimumHealthPercentage > 0),
-						DinoPassiveProtection::RequiresNotTurretMode
+						DinoPassiveProtection::RequiresNotTurretMode,
+						DinoPassiveProtection::EnableDismountTimer
 					};
 
 					//build array of aquired dino parameters for comparing
@@ -316,7 +441,8 @@ namespace DinoPassiveProtection
 						isIgnoringWhistles,
 						isNeutered,
 						isHealthAboveMin,
-						isNotInTurretMode
+						isNotInTurretMode,
+						isNotOnDismountCD
 					};
 
 					//Compare config values to dino values to decide if dino is protectected or not
@@ -407,7 +533,8 @@ namespace DinoPassiveProtection
 						DinoPassiveProtection::RequiresNeutered,
 						(DinoPassiveProtection::MinimumHealthPercentage > 0),
 						DinoPassiveProtection::RequiresNoNearbyEnemyStructures,
-						DinoPassiveProtection::RequiresNotTurretMode
+						DinoPassiveProtection::RequiresNotTurretMode,
+						DinoPassiveProtection::EnableDismountTimer
 					};
 
 					//build array of aquired dino parameters for comparing
@@ -423,7 +550,8 @@ namespace DinoPassiveProtection
 						isNeutered,
 						isHealthAboveMin,
 						isNotNearEnemyStructures,
-						isNotInTurretMode
+						isNotInTurretMode,
+						isNotOnDismountCD
 					};
 
 					//Compare config values to dino values to decide if dino is protectected or not
@@ -480,6 +608,7 @@ namespace DinoPassiveProtection
 					Log::GetLog()->warn("Dino isn't Near enemy Structures: {}", isNotNearEnemyStructures);
 					Log::GetLog()->warn("Dino isn't in Turret mode:        {}", isNotInTurretMode);
 					Log::GetLog()->warn("Dino is a Baby:                   {}", isBaby);
+					Log::GetLog()->warn("Dino is recently dismounted:      {}", !isNotOnDismountCD);
 				}
 				#pragma endregion Additional Logging
 
@@ -497,7 +626,8 @@ namespace DinoPassiveProtection
 					(DinoPassiveProtection::MinimumHealthPercentage > 0),
 					DinoPassiveProtection::RequiresNoNearbyEnemyStructures,
 					DinoPassiveProtection::RequiresNotTurretMode,
-					(DinoPassiveProtection::DinoBlacklist.size() > 0)
+					(DinoPassiveProtection::DinoBlacklist.size() > 0),
+					DinoPassiveProtection::EnableDismountTimer
 				};
 
 				//build array of aquired dino parameters for comparing
@@ -514,7 +644,8 @@ namespace DinoPassiveProtection
 					isHealthAboveMin,
 					isNotNearEnemyStructures,
 					isNotInTurretMode,
-					!isBlacklisted
+					!isBlacklisted,
+					isNotOnDismountCD
 				};
 
 				//Compare config values to dino values to decide if dino is protectected or not
@@ -527,7 +658,6 @@ namespace DinoPassiveProtection
 					{
 						if (DinoPassiveProtection::EnableConsoleDebugging)
 						{
-							Log::GetLog()->warn("Dino {} is not Protected", DinoName.ToString());
 							Log::GetLog()->warn("Reason: {}", DinoPassiveProtection::MissingProtectionHintMessages[i].ToString());
 							Log::GetLog()->warn("#####################################################################");
 							Log::GetLog()->warn("## End of debug ##");

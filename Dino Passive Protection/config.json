@@ -14,6 +14,8 @@
     "MinimumEnemyStructureDistanceInFoundations": 15.0,
     "RequiresNotTurretMode": true,
     "ProtectBabyDino": true,
+    "EnableDismountTimer": true,
+    "DismountTimerInSeconds": 60,
 
     "MessageTextSize": 1.3,
     "MessageDisplayDelay": 5,
@@ -44,6 +46,7 @@
     "DinoNearEnemyStructureMessage": "Dino is near enemy structures.",
     "DinoInTurretModeMessage": "Dino is in Turret mode.",
     "DinoIsBlacklistedMessage": "Dino is a blacklisted dino.",
+    "DinoRecentlyDismountedMessage": "Dino recently dismounted.",
 
     "DinoBlacklist": [
       "Blueprint'/Game/PrimalEarth/Dinos/Giganotosaurus/Gigant_Character_BP.Gigant_Character_BP'",
@@ -78,6 +81,20 @@
       "Blueprint'/Game/PrimalEarth/StructuresPlus/Structures/Foundations/Triangle/Adobe/BP_TriFoundation_Adobe.BP_TriFoundation_Adobe'",
       "Blueprint'/Game/PrimalEarth/StructuresPlus/Structures/Foundations/Triangle/Metal/BP_TriFoundation_Metal.BP_TriFoundation_Metal'",
       "Blueprint'/Game/PrimalEarth/StructuresPlus/Structures/Foundations/Triangle/Tek/BP_TriFoundation_Tek.BP_TriFoundation_Tek'"
+    ],
+
+    "InventoryItemWhitelist": [
+      "Berry",
+      "Veggie",
+      "Meat",
+      "Mushroom",
+      "PrimalItemConsumable_RawMutton_C",
+      "PrimalItemConsumable_CookedLambChop_C",
+      "PrimalItemConsumable_WyvernMilk_C",
+      "PrimalItemConsumable_SweetVeggieCake_C",
+      "PrimalItemResource_SnailPaste_C",
+      "PrimalItemResource_SquidOil_C",
+      "PrimalItemConsumable_Fertilizer_Compost_C"
     ]
   }
 }
