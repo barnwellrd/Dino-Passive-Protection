@@ -8,8 +8,50 @@ inline void GetProtectionStatus(AShooterPlayerController* player)
 		return;
 
 	//get aimed target
-	AActor* Actor = player->GetPlayerCharacter()->GetAimedActor(ECC_GameTraceChannel2, nullptr, 0.0, 0.0, nullptr, nullptr,
-		false, false);
+	AActor* Actor = player->GetPlayerCharacter()->GetAimedActor(ECollisionChannel::ECC_GameTraceChannel2, nullptr, 0.0, 0.0, nullptr, nullptr,
+		false, false, false);
+
+	if (DinoPassiveProtection::EnableConsoleDebugging) {
+		if (Actor && Actor->IsA(AActor::GetPrivateStaticClass())) {
+			Log::GetLog()->info("Target is AActor class.");
+		}
+		if (Actor && Actor->IsA(APawn::GetPrivateStaticClass())) {
+			Log::GetLog()->info("Target is APawn class.");
+		}
+		if (Actor && Actor->IsA(APlayerState::GetPrivateStaticClass())) {
+			Log::GetLog()->info("Target is APlayerState class.");
+		}
+		if (Actor && Actor->IsA(AController::GetPrivateStaticClass())) {
+			Log::GetLog()->info("Target is AController class.");
+		}
+		if (Actor && Actor->IsA(APlayerController::GetPrivateStaticClass())) {
+			Log::GetLog()->info("Target is APlayerController class.");
+		}
+		if (Actor && Actor->IsA(AShooterPlayerController::GetPrivateStaticClass())) {
+			Log::GetLog()->info("Target is AShooterPlayerController class.");
+		}
+		if (Actor && Actor->IsA(ACharacter::GetPrivateStaticClass())) {
+			Log::GetLog()->info("Target is ACharacter class.");
+		}
+		if (Actor && Actor->IsA(APrimalCharacter::GetPrivateStaticClass())) {
+			Log::GetLog()->info("Target is APrimalCharacter class.");
+		}
+		if (Actor && Actor->IsA(AShooterCharacter::GetPrivateStaticClass())) {
+			Log::GetLog()->info("Target is AShooterCharacter class.");
+		}
+		if (Actor && Actor->IsA(APrimalDinoCharacter::GetPrivateStaticClass())) {
+			Log::GetLog()->info("Target is APrimalDinoCharacter class.");
+		}
+		if (Actor && Actor->IsA(AAIController::GetPrivateStaticClass())) {
+			Log::GetLog()->info("Target is AAIController class.");
+		}
+		if (Actor && Actor->IsA(APrimalStructureItemContainer::GetPrivateStaticClass())) {
+			Log::GetLog()->info("Target is APrimalStructureItemContainer class.");
+		}
+		if (Actor && Actor->IsA(APrimalStructure::GetPrivateStaticClass())) {
+			Log::GetLog()->info("Target is APrimalStructure class.");
+		}
+	}
 
 	//check if target is a dino
 	if (Actor && Actor->IsA(APrimalDinoCharacter::GetPrivateStaticClass()))
@@ -69,8 +111,8 @@ inline void GetTargetPath(AShooterPlayerController* player)
 		return;
 
 	//get aimed target
-	AActor* Actor = player->GetPlayerCharacter()->GetAimedActor(ECC_GameTraceChannel2, nullptr, 0.0, 0.0, nullptr, nullptr,
-		false, false);
+	AActor* Actor = player->GetPlayerCharacter()->GetAimedActor(ECollisionChannel::ECC_GameTraceChannel2, nullptr, 0.0, 0.0, nullptr, nullptr,
+		false, false, false);
 
 	//check if target is a dino or structure
 	if (Actor && (Actor->IsA(APrimalDinoCharacter::GetPrivateStaticClass()) || Actor->IsA(APrimalStructure::GetPrivateStaticClass())))
