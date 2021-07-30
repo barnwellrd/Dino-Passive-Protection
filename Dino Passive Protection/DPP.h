@@ -142,6 +142,7 @@ namespace DinoPassiveProtection
 							return true;
 						}
 					}
+					return false;
 				});
 
 			if (iter != DismountedDinos.end()) {

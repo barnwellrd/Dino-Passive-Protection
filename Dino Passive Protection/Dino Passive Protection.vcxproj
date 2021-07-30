@@ -82,7 +82,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>D:\ArkAPI\Plugins_Source\Permissions\Permissions\Public;D:\ArkAPI\ARK-Server-API-master\version\Core\Public;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\Ricky\Desktop\repo\Ark-Server-Plugins\Permissions\Permissions\Public;C:\Users\Ricky\Desktop\repo\ARK-Server-API\version\Core\Public;$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -142,7 +142,7 @@
       </SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>F:\NPP\Lib\Core\Public;F:\NPP\Lib\Permissions\Public;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -154,7 +154,7 @@
       <OptimizeReferences>
       </OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>F:\NPP\Lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\Ricky\Desktop\repo\Ark-Server-Plugins\Permissions\out_lib;C:\Users\Ricky\Desktop\repo\ARK-Server-API\out_lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>Winmm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ArkApi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
